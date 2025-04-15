@@ -11,13 +11,9 @@ navigator.mediaDevices.getUserMedia({
   video.srcObject = stream;
 })
 .catch(err => {
-  console.error("Error al acceder a la cámara:", err);
+  console.error("Error al acceder a la cámara trasera:", err);
   alert("No se pudo acceder a la cámara trasera.");
 });
-  .catch(err => {
-    console.error("Error al acceder a la cámara:", err);
-    alert("No se pudo acceder a la cámara.");
-  });
 
 captureBtn.addEventListener('click', () => {
   canvas.width = video.videoWidth;
