@@ -4,10 +4,16 @@ const canvas = document.getElementById('canvas');
 const captureBtn = document.getElementById('capture');
 const resultDiv = document.getElementById('result');
 
-navigator.mediaDevices.getUserMedia({ video: true })
-  .then(stream => {
-    video.srcObject = stream;
-  })
+navigator.mediaDevices.getUserMedia({ 
+  video: { facingMode: { exact: "environment" } } 
+})
+.then(stream => {
+  video.srcObject = stream;
+})
+.catch(err => {
+  console.error("Error al acceder a la cámara:", err);
+  alert("No se pudo acceder a la cámara trasera.");
+});
   .catch(err => {
     console.error("Error al acceder a la cámara:", err);
     alert("No se pudo acceder a la cámara.");
