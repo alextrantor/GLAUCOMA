@@ -1,0 +1,29 @@
+
+body {
+  font-family: sans-serif;
+  text-align: center;
+  margin: 0;
+  padding: 20px;
+  background: #f9f9f9;
+}
+h1 {
+  color: #333;
+}
+.camera {
+  margin-top: 20px;
+}
+video {
+  width: 100%;
+  max-width: 400px;
+  border: 2px solid #333;
+  border-radius: 8px;
+}
+button {
+  margin-top: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+}
+#result {
+  margin-top: 20px;
+  font-size: 18px;
+}
