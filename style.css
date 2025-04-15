@@ -4,7 +4,7 @@ body {
   text-align: center;
   margin: 0;
   padding: 20px;
-  background: #f9f9f9;
+  background: #f0f0f0;
 }
 h1 {
   color: #333;
@@ -26,4 +26,6 @@ button {
 #result {
   margin-top: 20px;
   font-size: 18px;
+  color: #d00;
+  word-wrap: break-word;
 }

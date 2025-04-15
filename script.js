@@ -12,7 +12,7 @@ navigator.mediaDevices.getUserMedia({
 })
 .catch(err => {
   console.error("Error al acceder a la cámara trasera:", err);
-  alert("No se pudo acceder a la cámara trasera.");
+  resultDiv.innerHTML = "No se pudo acceder a la cámara trasera.";
 });
 
 captureBtn.addEventListener('click', () => {
@@ -28,13 +28,24 @@ captureBtn.addEventListener('click', () => {
       method: 'POST',
       body: formData
     })
-    .then(res => res.json())
-    .then(data => {
-      resultDiv.innerHTML = `<strong>Resultado:</strong> ${data.prediction}<br><strong>Confianza:</strong> ${data.confidence.toFixed(2)}`;
+    .then(async res => {
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
+        resultDiv.innerHTML = "Error al interpretar la respuesta del servidor.<br>Respuesta cruda: " + await res.text();
+        return;
+      }
+
+      if (res.ok) {
+        resultDiv.innerHTML = `<strong>Resultado:</strong> ${data.prediction}<br><strong>Confianza:</strong> ${data.confidence.toFixed(2)}`;
+      } else {
+        resultDiv.innerHTML = "Error del servidor: " + JSON.stringify(data);
+      }
     })
     .catch(err => {
-      console.error('Error en la predicción:', err);
-      resultDiv.textContent = "Ocurrió un error al procesar la imagen.";
+      console.error('Error al enviar imagen:', err);
+      resultDiv.innerHTML = "Error al enviar la imagen: " + err.message;
     });
   }, 'image/jpeg');
 });
