@@ -2,10 +2,12 @@ const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const captureBtn = document.getElementById('capture');
 const resultDiv = document.getElementById('result');
+const loadingDiv = document.getElementById('loading');
+const capturedImageContainer = document.getElementById('capturedImageContainer');
+const capturedImage = document.getElementById('capturedImage');
 
-// Acceder a la cámara trasera
-navigator.mediaDevices.getUserMedia({ 
-  video: { facingMode: { exact: "environment" } } 
+navigator.mediaDevices.getUserMedia({
+  video: { facingMode: { exact: "environment" } }
 })
 .then(stream => {
   video.srcObject = stream;
@@ -15,25 +17,26 @@ navigator.mediaDevices.getUserMedia({
   resultDiv.innerHTML = "No se pudo acceder a la cámara trasera.";
 });
 
-// Capturar imagen y enviarla al backend
 captureBtn.addEventListener('click', () => {
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0);
 
-  canvas.toBlob(blob => {
-    if (!blob) {
-      console.error("No se pudo convertir el canvas a blob.");
-      resultDiv.innerHTML = "Error al procesar la imagen.";
-      return;
-    }
+  // Congelar la imagen en el contenedor
+  const dataURL = canvas.toDataURL('image/jpeg');
+  capturedImage.src = dataURL;
+  capturedImageContainer.style.display = 'block'; // Mostrar imagen capturada
 
+  // Desactivar el botón y mostrar el mensaje de carga
+  captureBtn.disabled = true;
+  loadingDiv.style.display = 'block';
+
+  canvas.toBlob(blob => {
     const formData = new FormData();
     formData.append('image', blob, 'captura.jpg');
 
-    console.log("Enviando imagen al backend...");
-
+    // Enviar la imagen al backend
     fetch('https://glaucoma-ntk9.onrender.com/predict', {
       method: 'POST',
       body: formData
@@ -43,23 +46,28 @@ captureBtn.addEventListener('click', () => {
       try {
         data = await res.json();
       } catch (e) {
-        const raw = await res.text();
-        console.error("Respuesta cruda del servidor:", raw);
-        resultDiv.innerHTML = "Error al interpretar la respuesta del servidor.";
+        resultDiv.innerHTML = "Error al interpretar la respuesta del servidor.<br>Respuesta cruda: " + await res.text();
         return;
       }
 
       if (res.ok) {
         resultDiv.innerHTML = `<strong>Resultado:</strong> ${data.prediction}<br><strong>Confianza:</strong> ${data.confidence.toFixed(2)}`;
       } else {
-        console.error("Respuesta con error:", data);
         resultDiv.innerHTML = "Error del servidor: " + JSON.stringify(data);
       }
+
+      // Ocultar el mensaje de carga y habilitar el botón
+      loadingDiv.style.display = 'none';
+      captureBtn.disabled = false;
     })
     .catch(err => {
-      console.error('Error al enviar la imagen:', err);
+      console.error('Error al enviar imagen:', err);
       resultDiv.innerHTML = "Error al enviar la imagen: " + err.message;
-    });
 
+      // Ocultar el mensaje de carga y habilitar el botón
+      loadingDiv.style.display = 'none';
+      captureBtn.disabled = false;
+    });
   }, 'image/jpeg');
 });
+
