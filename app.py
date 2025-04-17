@@ -3,6 +3,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.efficientnet import preprocess_input
 from PIL import Image
 import numpy as np
+import os
 
 app = Flask(__name__)
 model = load_model("modelo_clasificacion_glaucoma_mejorado.h5")
@@ -20,13 +21,14 @@ def predict():
 
     pred = model.predict(img_array)[0]
     label = 'Normal' if np.argmax(pred) == 0 else 'Sospecha de Glaucoma'
+    confidence = float(np.max(pred))
+
+    print({"prediction": label, "confidence": confidence})  # 🧪 Log en Render
 
     return jsonify({
         'prediction': label,
-        'confidence': float(np.max(pred))
+        'confidence': confidence
     })
-
-import os
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))

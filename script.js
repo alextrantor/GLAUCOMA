@@ -28,18 +28,14 @@ captureBtn.addEventListener('click', () => {
       body: formData
     })
     .then(async res => {
-      let data;
-      try {
-        data = await res.json();
-      } catch (e) {
-        resultDiv.innerHTML = "Error al interpretar la respuesta del servidor.<br>Respuesta cruda: " + await res.text();
-        return;
-      }
+      const rawText = await res.text();
+      console.log("Respuesta cruda del backend:", rawText);  // 🧪 Log en navegador
 
-      if (res.ok) {
+      try {
+        const data = JSON.parse(rawText);
         resultDiv.innerHTML = `<strong>Resultado:</strong> ${data.prediction}<br><strong>Confianza:</strong> ${data.confidence.toFixed(2)}`;
-      } else {
-        resultDiv.innerHTML = "Error del servidor: " + JSON.stringify(data);
+      } catch (e) {
+        resultDiv.innerHTML = "Error al interpretar JSON.<br>Respuesta cruda: " + rawText;
       }
     })
     .catch(err => {
