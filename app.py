@@ -21,15 +21,13 @@ def predict():
 
     pred = model.predict(img_array)[0]
     label = 'Normal' if np.argmax(pred) == 0 else 'Sospecha de Glaucoma'
-    confidence = float(np.max(pred))
-
-    print({"prediction": label, "confidence": confidence})  # 🧪 Log en Render
 
     return jsonify({
         'prediction': label,
-        'confidence': confidence
+        'confidence': float(np.max(pred))
     })
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port)
+
