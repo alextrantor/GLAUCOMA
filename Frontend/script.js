@@ -2,10 +2,11 @@ const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const captureBtn = document.getElementById('capture');
 const resultDiv = document.getElementById('result');
-const loadingDiv = document.getElementById('loading');
 const capturedImageContainer = document.getElementById('capturedImageContainer');
 const capturedImage = document.getElementById('capturedImage');
+const loadingDiv = document.getElementById('loading');
 
+// Accede a la cámara trasera
 navigator.mediaDevices.getUserMedia({
   video: { facingMode: { exact: "environment" } }
 })
@@ -17,6 +18,7 @@ navigator.mediaDevices.getUserMedia({
   resultDiv.innerHTML = "No se pudo acceder a la cámara trasera.";
 });
 
+// Capturar imagen cuando el usuario haga clic
 captureBtn.addEventListener('click', () => {
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
@@ -33,8 +35,12 @@ captureBtn.addEventListener('click', () => {
   loadingDiv.style.display = 'block';
 
   canvas.toBlob(blob => {
+    console.log("Imagen Blob creada:", blob);  // Verifica el blob que se crea
+
     const formData = new FormData();
     formData.append('image', blob, 'captura.jpg');
+
+    console.log("FormData preparado:", formData);  // Verifica el FormData que se prepara
 
     // Enviar la imagen al backend
     fetch('https://glaucoma-ntk9.onrender.com/predict', {
@@ -70,4 +76,3 @@ captureBtn.addEventListener('click', () => {
     });
   }, 'image/jpeg');
 });
-
