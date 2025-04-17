@@ -9,7 +9,6 @@ navigator.mediaDevices.getUserMedia({
 })
 .then(stream => {
   video.srcObject = stream;
-  // Asegúrate de que la cámara se inicie correctamente en el video
   video.play();
 })
 .catch(err => {
@@ -17,6 +16,14 @@ navigator.mediaDevices.getUserMedia({
   resultDiv.innerHTML = "No se pudo acceder a la cámara trasera.";
 });
 
+// Detener la cámara después de la captura
+function stopCamera() {
+  const stream = video.srcObject;
+  const tracks = stream.getTracks();
+  tracks.forEach(track => track.stop());
+}
+
+// Congelar la imagen y enviarla al servidor para la predicción
 captureBtn.addEventListener('click', () => {
   // Congelar la imagen cuando se captura
   canvas.width = video.videoWidth;
@@ -25,11 +32,16 @@ captureBtn.addEventListener('click', () => {
   ctx.drawImage(video, 0, 0);
   
   // Detener el flujo de la cámara después de capturar la imagen
-  const stream = video.srcObject;
-  const tracks = stream.getTracks();
-  tracks.forEach(track => track.stop());
+  stopCamera();
+
+  // Mostrar la imagen congelada
+  const imageUrl = canvas.toDataURL('image/jpeg');
+  const imgElement = document.createElement('img');
+  imgElement.src = imageUrl;
+  resultDiv.innerHTML = ''; // Limpiar cualquier mensaje previo
+  resultDiv.appendChild(imgElement); // Mostrar la imagen congelada
   
-  // Capturar la imagen como blob y enviarla al servidor
+  // Enviar la imagen al backend para predicción
   canvas.toBlob(blob => {
     const formData = new FormData();
     formData.append('image', blob, 'captura.jpg');
@@ -49,9 +61,9 @@ captureBtn.addEventListener('click', () => {
       }
 
       if (res.ok) {
-        resultDiv.innerHTML = `<strong>Resultado:</strong> ${data.prediction}<br><strong>Confianza:</strong> ${data.confidence.toFixed(2)}`;
+        resultDiv.innerHTML += `<strong>Resultado:</strong> ${data.prediction}<br><strong>Confianza:</strong> ${data.confidence.toFixed(2)}`;
       } else {
-        resultDiv.innerHTML = "Error del servidor: " + JSON.stringify(data);
+        resultDiv.innerHTML += "Error del servidor: " + JSON.stringify(data);
       }
     })
     .catch(err => {
