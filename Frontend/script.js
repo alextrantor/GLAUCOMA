@@ -3,6 +3,7 @@ const canvas = document.getElementById('canvas');
 const captureBtn = document.getElementById('capture');
 const resultDiv = document.getElementById('result');
 let stream;
+let capturedImageBlob;
 
 navigator.mediaDevices.getUserMedia({ 
   video: { facingMode: { exact: "environment" } } 
@@ -21,12 +22,21 @@ captureBtn.addEventListener('click', () => {
   canvas.height = video.videoHeight;
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0);
+
+  // Mostrar la imagen capturada antes de detener la cámara
   canvas.toBlob(blob => {
+    capturedImageBlob = blob;
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(blob);
+    resultDiv.innerHTML = ''; // Limpiar cualquier mensaje anterior
+    resultDiv.appendChild(img); // Mostrar la imagen capturada
+    resultDiv.innerHTML += '<br><strong>Procesando imagen...</strong>'; // Mensaje de proceso
+
+    // Detener la cámara después de capturar la imagen
+    stream.getTracks().forEach(track => track.stop());
+
     const formData = new FormData();
     formData.append('image', blob, 'captura.jpg');
-    
-    // Desactivar la cámara después de tomar la foto
-    stream.getTracks().forEach(track => track.stop());
 
     // Enviar la imagen al backend para la predicción
     fetch('https://glaucoma-ntk9.onrender.com/predict', {
@@ -66,7 +76,5 @@ captureBtn.addEventListener('click', () => {
     })
     .catch(err => {
       console.error('Error al enviar imagen:', err);
-      resultDiv.innerHTML = "Error al enviar la imagen: " + err.message;
-    });
-  }, 'image/jpeg');
-});
+      resultDiv.innerHTML = "Error al
+
