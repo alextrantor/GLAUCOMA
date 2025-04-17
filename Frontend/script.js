@@ -2,15 +2,15 @@ const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const captureBtn = document.getElementById('capture');
 const resultDiv = document.getElementById('result');
-let stream;
-let capturedImageBlob;
 
+// Acceder automáticamente a la cámara cuando la página cargue
 navigator.mediaDevices.getUserMedia({ 
   video: { facingMode: { exact: "environment" } } 
 })
-.then(s => {
-  stream = s;
+.then(stream => {
   video.srcObject = stream;
+  // Asegúrate de que la cámara se inicie correctamente en el video
+  video.play();
 })
 .catch(err => {
   console.error("Error al acceder a la cámara trasera:", err);
@@ -18,27 +18,23 @@ navigator.mediaDevices.getUserMedia({
 });
 
 captureBtn.addEventListener('click', () => {
+  // Congelar la imagen cuando se captura
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0);
-
-  // Mostrar la imagen capturada antes de detener la cámara
+  
+  // Detener el flujo de la cámara después de capturar la imagen
+  const stream = video.srcObject;
+  const tracks = stream.getTracks();
+  tracks.forEach(track => track.stop());
+  
+  // Capturar la imagen como blob y enviarla al servidor
   canvas.toBlob(blob => {
-    capturedImageBlob = blob;
-    const img = document.createElement('img');
-    img.src = URL.createObjectURL(blob);
-    resultDiv.innerHTML = ''; // Limpiar cualquier mensaje anterior
-    resultDiv.appendChild(img); // Mostrar la imagen capturada
-    resultDiv.innerHTML += '<br><strong>Procesando imagen...</strong>'; // Mensaje de proceso
-
-    // Detener la cámara después de capturar la imagen
-    stream.getTracks().forEach(track => track.stop());
-
     const formData = new FormData();
     formData.append('image', blob, 'captura.jpg');
-
-    // Enviar la imagen al backend para la predicción
+    
+    // Enviar la imagen al backend para predicción
     fetch('https://glaucoma-ntk9.onrender.com/predict', {
       method: 'POST',
       body: formData
@@ -54,27 +50,13 @@ captureBtn.addEventListener('click', () => {
 
       if (res.ok) {
         resultDiv.innerHTML = `<strong>Resultado:</strong> ${data.prediction}<br><strong>Confianza:</strong> ${data.confidence.toFixed(2)}`;
-        resultDiv.innerHTML += `<br><button id="takeAnother">Tomar otra foto</button>`;
-        
-        // Mostrar opción de tomar otra foto
-        document.getElementById('takeAnother').addEventListener('click', () => {
-          // Activar la cámara nuevamente
-          navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: { exact: "environment" } } 
-          }).then(s => {
-            stream = s;
-            video.srcObject = stream;
-            resultDiv.innerHTML = ""; // Limpiar resultados previos
-          }).catch(err => {
-            console.error("Error al acceder a la cámara trasera:", err);
-            resultDiv.innerHTML = "No se pudo acceder a la cámara trasera.";
-          });
-        });
       } else {
         resultDiv.innerHTML = "Error del servidor: " + JSON.stringify(data);
       }
     })
     .catch(err => {
       console.error('Error al enviar imagen:', err);
-      resultDiv.innerHTML = "Error al
-
+      resultDiv.innerHTML = "Error al enviar la imagen: " + err.message;
+    });
+  }, 'image/jpeg');
+});
