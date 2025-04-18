@@ -3,4 +3,4 @@ services:
     name: ia-glaucoma
     env: python
     buildCommand: cd Backend && pip install -r requirements.txt
-    startCommand: cd Backend && python app.py
+    startCommand: cd Backend && gunicorn -b 0.0.0.0:$PORT app:app
