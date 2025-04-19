@@ -1,104 +1,78 @@
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const captureBtn = document.getElementById('capture');
+const uploadInput = document.getElementById('upload');
 const resultDiv = document.getElementById('result');
-const uploadInput = document.getElementById('uploadInput');
-const capturedImageContainer = document.getElementById('capturedImageContainer');
-const capturedImage = document.getElementById('capturedImage');
+const loading = document.getElementById('loading');
 
-// Iniciar la cámara trasera
-navigator.mediaDevices.getUserMedia({
-  video: { facingMode: { exact: "environment" } }
-})
-.then(stream => {
-  video.srcObject = stream;
-  video.play();
-})
-.catch(err => {
-  console.error("Error al acceder a la cámara trasera:", err);
-  resultDiv.innerHTML = "No se pudo acceder a la cámara trasera.";
-});
+// Iniciar cámara automáticamente
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+  .then(stream => {
+    video.srcObject = stream;
+    video.play();
+  })
+  .catch(err => {
+    console.error("No se pudo acceder a la cámara:", err);
+    resultDiv.textContent = "Error al acceder a la cámara.";
+  });
 
 function stopCamera() {
   const stream = video.srcObject;
-  const tracks = stream ? stream.getTracks() : [];
-  tracks.forEach(track => track.stop());
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+  }
 }
 
-// Función para enviar imagen (desde cámara o archivo)
 function enviarImagen(blob) {
   const formData = new FormData();
   formData.append('image', blob, 'imagen.jpg');
-
-  resultDiv.innerHTML = "Procesando...";
+  loading.style.display = 'block';
+  resultDiv.innerHTML = '';
 
   fetch('https://glaucoma-ntk9.onrender.com/predict', {
     method: 'POST',
     body: formData
   })
   .then(async res => {
-    let data;
-    try {
-      data = await res.json();
-    } catch (e) {
-      resultDiv.innerHTML = "Error al interpretar la respuesta del servidor.<br>Respuesta cruda: " + await res.text();
-      return;
-    }
-
+    loading.style.display = 'none';
+    const data = await res.json();
     if (res.ok) {
-      resultDiv.innerHTML = `<strong>Resultado:</strong> ${data.prediction}<br><strong>Confianza:</strong> ${data.confidence.toFixed(2)}`;
+      resultDiv.innerHTML = `<strong>Resultado:</strong> ${data.prediction}<br><strong>Confianza:</strong> ${(data.confidence * 100).toFixed(2)}%`;
     } else {
-      resultDiv.innerHTML = "Error del servidor: " + JSON.stringify(data);
+      resultDiv.textContent = "Error en la predicción: " + JSON.stringify(data);
     }
   })
   .catch(err => {
+    loading.style.display = 'none';
     console.error('Error al enviar imagen:', err);
-    resultDiv.innerHTML = "Error al enviar la imagen: " + err.message;
+    resultDiv.textContent = "Error al enviar la imagen.";
   });
 }
 
-// Captura desde cámara
+// Capturar desde cámara
 captureBtn.addEventListener('click', () => {
-  const ctx = canvas.getContext('2d');
-  canvas.width = 300;
-  canvas.height = 300;
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  // Detener la cámara
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
   stopCamera();
-
-  const imageUrl = canvas.toDataURL('image/jpeg');
-  capturedImage.src = imageUrl;
-  capturedImageContainer.style.display = 'block';
-
-  canvas.toBlob(blob => {
-    enviarImagen(blob);
-  }, 'image/jpeg');
+  canvas.toBlob(enviarImagen, 'image/jpeg');
 });
 
-// Cargar imagen desde archivo
-uploadInput.addEventListener('change', (event) => {
-  const file = event.target.files[0];
+// Subir imagen desde dispositivo
+uploadInput.addEventListener('change', () => {
+  const file = uploadInput.files[0];
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = function (e) {
+  reader.onload = () => {
     const img = new Image();
-    img.onload = function () {
-      const ctx = canvas.getContext('2d');
-      canvas.width = 300;
-      canvas.height = 300;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      const imageUrl = canvas.toDataURL('image/jpeg');
-      capturedImage.src = imageUrl;
-      capturedImageContainer.style.display = 'block';
-
-      canvas.toBlob(blob => {
-        enviarImagen(blob);
-      }, 'image/jpeg');
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      canvas.toBlob(enviarImagen, 'image/jpeg');
     };
-    img.src = e.target.result;
+    img.src = reader.result;
   };
   reader.readAsDataURL(file);
 });

@@ -5,45 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Detector de Glaucoma</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    video, canvas, #capturedImage {
-      width: 300px;
-      height: 300px;
-      object-fit: cover;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-
-    .capture-button, .upload-button {
-      margin-top: 10px;
-      padding: 10px 15px;
-      font-size: 16px;
-    }
-
-    #capturedImageContainer {
-      margin-top: 15px;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
     <h1>Detector de Glaucoma</h1>
-
+    
     <div class="camera">
       <video id="video" autoplay playsinline></video>
-      <canvas id="canvas" width="300" height="300" style="display:none;"></canvas>
-
-      <div id="capturedImageContainer" style="display: none;">
-        <h3>Imagen Capturada:</h3>
-        <img id="capturedImage" alt="Imagen capturada" />
-      </div>
-
-      <button id="capture" class="capture-button">Capturar desde cámara</button>
-      <br />
-      <input type="file" id="uploadInput" accept="image/*" class="upload-button" />
+      <canvas id="canvas" style="display: none;"></canvas>
     </div>
 
-    <div id="loading" class="loading" style="display: none;">Procesando...</div>
+    <div class="buttons">
+      <button id="capture" class="btn">📷 Capturar Foto</button>
+      <input type="file" id="upload" accept="image/*" hidden>
+      <label for="upload" class="btn secondary">🖼️ Subir Imagen</label>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">🔄 Procesando...</div>
     <div id="result" class="result"></div>
   </div>
 
