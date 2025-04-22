@@ -3,7 +3,7 @@ from flask_cors import CORS
 from PIL import Image
 import numpy as np
 from tensorflow.keras.applications.efficientnet import preprocess_input
-from model_loader import get_model
+from .model_loader import get_model
 import os
 
 app = Flask(__name__)
