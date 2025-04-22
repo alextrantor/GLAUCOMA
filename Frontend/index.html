@@ -9,19 +9,28 @@
 <body>
   <div class="container">
     <h1>Detector de Glaucoma</h1>
-    
+
     <div class="camera">
       <video id="video" autoplay playsinline></video>
       <canvas id="canvas" style="display: none;"></canvas>
+
+      <div class="controls">
+        <button id="capture" class="btn">📸 Capturar Foto</button>
+        <label class="btn file-label">
+          📁 Subir Imagen
+          <input type="file" id="fileInput" accept="image/*" hidden />
+        </label>
+        <button id="reset" class="btn secondary">🔄 Reiniciar</button>
+      </div>
     </div>
 
-    <div class="buttons">
-      <button id="capture" class="btn">📷 Capturar Foto</button>
-      <input type="file" id="upload" accept="image/*" hidden>
-      <label for="upload" class="btn secondary">🖼️ Subir Imagen</label>
+    <div id="loading" class="loading" style="display: none;">⏳ Procesando imagen...</div>
+
+    <div id="capturedImageContainer" style="display: none;">
+      <h3>Imagen Procesada</h3>
+      <img id="capturedImage" alt="Imagen capturada" />
     </div>
 
-    <div id="loading" class="loading" style="display: none;">🔄 Procesando...</div>
     <div id="result" class="result"></div>
   </div>
 
