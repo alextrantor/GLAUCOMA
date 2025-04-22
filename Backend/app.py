@@ -7,7 +7,7 @@ from model_loader import get_model
 import os
 
 app = Flask(__name__)
-CORS(app)  # permite peticiones desde otros orígenes (Netlify)
+CORS(app, resources={r"/predict": {"origins": "https://glaucomate.netlify.app"}})  # Configuración de CORS para tu frontend
 
 # Cargar modelo
 model = get_model()

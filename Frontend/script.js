@@ -81,6 +81,7 @@ function sendImage(canvasElement) {
   resultDiv.innerHTML = '';
 
   canvasElement.toBlob(blob => {
+    console.log('Tipo de blob:', typeof blob, blob); // Añadido para inspeccionar 'blob'
     const formData = new FormData();
     formData.append('image', blob, 'captura.jpg');
 
