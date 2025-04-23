@@ -1,114 +1,85 @@
-/* General */
 * {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', sans-serif;
 }
 
 body {
-  background-color: #f2f5f9;
+  background-color: #e8f0fe;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   padding: 20px;
 }
 
 .container {
-  background-color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  text-align: center;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  padding: 25px;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
+  text-align: center;
 }
 
 h1 {
   font-size: 24px;
+  color: #333;
   margin-bottom: 20px;
-  color: #222;
 }
 
-/* Video y cámara */
 .camera {
   position: relative;
-  margin-bottom: 10px;
 }
 
 video {
   width: 100%;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 2px solid #ccc;
 }
 
-canvas {
-  display: none;
+#capturedImage {
+  width: 100%;
+  border-radius: 10px;
+  border: 2px solid #ccc;
+  margin-top: 10px;
+  object-fit: contain;
 }
 
-/* Botones */
-.buttons {
+.controls {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
-button,
-label[for="uploadInput"] {
-  background-color: #007bff;
+button, input[type="file"] {
+  background-color: #1976d2;
   color: white;
   border: none;
-  padding: 10px 16px;
-  font-size: 16px;
-  border-radius: 8px;
+  padding: 10px;
+  font-size: 15px;
+  border-radius: 6px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s;
 }
 
-button:hover,
-label[for="uploadInput"]:hover {
-  background-color: #0056b3;
-}
-
-button i,
-label i {
-  font-size: 18px;
-}
-
-button:disabled {
-  background-color: #aaa;
-  cursor: not-allowed;
-}
-
-input[type="file"] {
-  display: none;
-}
-
-/* Imagen cargada */
-.result img {
-  width: 100%;
-  max-height: 240px;
-  object-fit: cover;
-  border-radius: 12px;
-  margin-top: 10px;
-  border: 2px solid #ccc;
-}
-
-.result {
-  margin-top: 15px;
-  font-size: 16px;
-  font-weight: bold;
-  color: #333;
+button:hover, input[type="file"]:hover {
+  background-color: #155fa0;
 }
 
 .loading {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #666;
+  margin-top: 20px;
+  color: #555;
+  font-style: italic;
+}
+
+.result {
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #222;
 }

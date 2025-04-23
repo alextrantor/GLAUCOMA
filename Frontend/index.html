@@ -1,34 +1,33 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Detector de Glaucoma</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
   <div class="container">
     <h1>Detector de Glaucoma</h1>
+
     <div class="camera">
       <video id="video" autoplay playsinline></video>
-      <canvas id="canvas"></canvas>
+      <canvas id="canvas" style="display:none;"></canvas>
 
-      <div class="buttons">
-        <button id="capture" title="Capturar foto">
-          <i class="fas fa-camera"></i> Capturar
-        </button>
-        <button id="switchCamera" title="Cambiar cámara">
-          <i class="fas fa-sync-alt"></i> Cámara
-        </button>
-        <label for="uploadInput" title="Subir imagen">
-          <i class="fas fa-upload"></i> Subir
-        </label>
-        <input type="file" id="uploadInput" accept="image/*">
+      <div id="capturedImageContainer" style="display: none;">
+        <h3>Imagen seleccionada:</h3>
+        <img id="capturedImage" alt="Imagen capturada" />
+      </div>
+
+      <div class="controls">
+        <button id="capture" title="Capturar imagen 📸">📸 Capturar</button>
+        <input type="file" id="fileInput" accept="image/*"/>
+        <button id="switchCamera" title="Cambiar cámara 🔄">🔄 Cámara</button>
+        <button id="retry" title="Volver a intentar 🔁">🔁 Reintentar</button>
       </div>
     </div>
 
-    <div id="loading" class="loading" style="display: none;">Procesando...</div>
+    <div id="loading" class="loading" style="display: none;">Procesando imagen...</div>
     <div id="result" class="result"></div>
   </div>
 
