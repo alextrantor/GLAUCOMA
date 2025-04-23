@@ -1,91 +1,106 @@
-/* style.css */
-
+/* Reset básico */
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-body {
-  background: linear-gradient(135deg, #e0f7fa, #f1f8e9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 20px;
-}
-
-.container {
-  background-color: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  padding: 30px 20px;
-  text-align: center;
-  max-width: 400px;
-  width: 100%;
-}
-
-h1 {
-  font-size: 24px;
-  margin-bottom: 20px;
-  color: #2c3e50;
-}
-
-.camera {
-  position: relative;
-}
-
-video {
-  width: 100%;
-  border-radius: 12px;
-  border: 2px solid #ccc;
-  margin-bottom: 10px;
-}
-
-.capture-button,
-.upload-button {
-  background-color: #1976d2;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  font-size: 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  width: 100%;
-  margin-bottom: 10px;
-  transition: background 0.3s;
-}
-
-.capture-button:hover,
-.upload-button:hover {
-  background-color: #1565c0;
-}
-
-input[type="file"].upload-button {
-  padding: 8px;
-  font-size: 14px;
-  background-color: #f1f1f1;
-  color: #333;
-  border: 1px solid #ccc;
-}
-
-.loading {
-  margin-top: 10px;
-  color: #888;
-  font-style: italic;
-}
-
-#capturedImage {
-  width: 100%;
-  margin-top: 15px;
-  border-radius: 12px;
-  border: 2px solid #ddd;
-}
-
-.result {
-  margin-top: 20px;
-  font-size: 18px;
-  font-weight: bold;
-  color: #2c3e50;
-}
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  /* Fondo general */
+  body {
+    background-color: #f4f6f9;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  /* Contenedor principal */
+  .container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+  
+  /* Título */
+  h1 {
+    font-size: 24px;
+    color: #2c3e50;
+    margin-bottom: 20px;
+  }
+  
+  /* Contenedor de la cámara */
+  .camera {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+  /* Vista previa del video */
+  video {
+    width: 100%;
+    border-radius: 12px;
+    border: 2px solid #ccc;
+  }
+  
+  /* Botones */
+  .btn {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    margin: 8px 4px;
+    cursor: pointer;
+    width: calc(100% - 8px);
+    transition: background-color 0.3s ease;
+  }
+  
+  .btn:hover {
+    background-color: #2980b9;
+  }
+  
+  /* Botón alternativo */
+  .secondary {
+    background-color: #95a5a6;
+  }
+  
+  .secondary:hover {
+    background-color: #7f8c8d;
+  }
+  
+  /* Input de archivo oculto */
+  .file-label {
+    display: inline-block;
+    cursor: pointer;
+  }
+  
+  /* Loading */
+  .loading {
+    margin-top: 10px;
+    color: #7f8c8d;
+    font-style: italic;
+  }
+  
+  /* Imagen capturada */
+  #capturedImage {
+    width: 100%;
+    max-height: 250px;
+    object-fit: contain;
+    border-radius: 12px;
+    margin-top: 10px;
+    border: 2px solid #ccc;
+  }
+  
+  /* Resultado */
+  .result {
+    margin-top: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #2d3436;
+  }
