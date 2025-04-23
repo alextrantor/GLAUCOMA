@@ -1,22 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Detector de Glaucoma</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
   <div class="container">
     <h1>Detector de Glaucoma</h1>
-
     <div class="camera">
       <video id="video" autoplay playsinline></video>
-      <canvas id="canvas" style="display: none;"></canvas>
-    </div>
+      <canvas id="canvas"></canvas>
 
-    <div class="buttons">
-      <button id="capture" class="capture-button">Capturar</button>
+      <div class="buttons">
+        <button id="capture" title="Capturar foto">
+          <i class="fas fa-camera"></i> Capturar
+        </button>
+        <button id="switchCamera" title="Cambiar cámara">
+          <i class="fas fa-sync-alt"></i> Cámara
+        </button>
+        <label for="uploadInput" title="Subir imagen">
+          <i class="fas fa-upload"></i> Subir
+        </label>
+        <input type="file" id="uploadInput" accept="image/*">
+      </div>
     </div>
 
     <div id="loading" class="loading" style="display: none;">Procesando...</div>

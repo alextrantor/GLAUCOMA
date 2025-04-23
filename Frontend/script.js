@@ -1,100 +1,120 @@
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const captureBtn = document.getElementById('capture');
+const switchCameraBtn = document.getElementById('switchCamera');
+const uploadInput = document.getElementById('uploadInput');
 const resultDiv = document.getElementById('result');
-const switchCameraBtn = document.createElement('button');
-switchCameraBtn.innerText = "Cambiar cámara";
-switchCameraBtn.classList.add('capture-button');
-document.querySelector('.camera').appendChild(switchCameraBtn);
+const loadingDiv = document.getElementById('loading');
 
-let currentStream = null;
-let usingFrontCamera = false;
+let stream = null;
+let currentCamera = 'environment'; // 'user' para frontal
 
-// Función para iniciar la cámara
-async function startCamera(facingMode = "environment") {
+async function startCamera(facingMode = 'environment') {
   try {
-    if (currentStream) {
-      currentStream.getTracks().forEach(track => track.stop());
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
     }
 
-    const constraints = {
-      video: {
-        facingMode: { exact: facingMode }
-      }
-    };
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode }
+    });
 
-    currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-    video.srcObject = currentStream;
+    video.srcObject = stream;
     video.play();
+    currentCamera = facingMode;
   } catch (error) {
-    if (facingMode === "environment") {
-      console.warn("No se pudo acceder a la cámara trasera, intentando con la frontal.");
-      usingFrontCamera = true;
-      startCamera("user");
+    console.error('No se pudo acceder a la cámara:', error);
+    if (facingMode === 'environment') {
+      console.log('Intentando con la cámara frontal...');
+      startCamera('user');
     } else {
-      console.error("No se pudo acceder a ninguna cámara:", error);
-      resultDiv.innerHTML = "No se pudo acceder a ninguna cámara.";
+      resultDiv.innerHTML = 'No se pudo acceder a ninguna cámara.';
     }
   }
 }
 
-// Botón para cambiar cámara
-switchCameraBtn.addEventListener('click', () => {
-  usingFrontCamera = !usingFrontCamera;
-  startCamera(usingFrontCamera ? "user" : "environment");
-});
-
-startCamera(); // Iniciar con cámara trasera
-
-// Función para detener cámara
 function stopCamera() {
-  if (currentStream) {
-    currentStream.getTracks().forEach(track => track.stop());
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
   }
 }
 
-// Capturar imagen y enviarla
-captureBtn.addEventListener('click', () => {
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+function showLoading() {
+  loadingDiv.style.display = 'block';
+  resultDiv.innerHTML = '';
+}
+
+function hideLoading() {
+  loadingDiv.style.display = 'none';
+}
+
+function drawAndSendImage(imageSource) {
   const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  canvas.width = video.clientWidth;
+  canvas.height = video.clientHeight;
 
-  const imageData = canvas.toDataURL('image/jpeg');
-  const imgBlob = dataURLtoBlob(imageData);
+  ctx.drawImage(imageSource, 0, 0, canvas.width, canvas.height);
 
-  const formData = new FormData();
-  formData.append('image', imgBlob, 'captura.jpg');
+  canvas.toBlob(blob => {
+    const formData = new FormData();
+    formData.append('image', blob, 'captura.jpg');
 
-  resultDiv.innerHTML = "Procesando...";
+    showLoading();
 
-  fetch('https://glaucoma-ntk9.onrender.com/predict', {
-    method: 'POST',
-    body: formData
-  })
+    fetch('https://glaucoma-ntk9.onrender.com/predict', {
+      method: 'POST',
+      body: formData
+    })
     .then(async res => {
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
+        resultDiv.innerHTML = "Error al interpretar la respuesta del servidor.<br>Respuesta cruda: " + await res.text();
+        return;
+      }
+
       if (res.ok) {
         resultDiv.innerHTML = `<strong>Resultado:</strong> ${data.prediction}<br><strong>Confianza:</strong> ${data.confidence.toFixed(2)}`;
       } else {
-        resultDiv.innerHTML = `Error del servidor: ${JSON.stringify(data)}`;
+        resultDiv.innerHTML = "Error del servidor: " + JSON.stringify(data);
       }
     })
     .catch(err => {
-      console.error('Error al enviar imagen:', err);
       resultDiv.innerHTML = "Error al enviar la imagen: " + err.message;
+    })
+    .finally(() => {
+      hideLoading();
     });
+  }, 'image/jpeg');
+}
+
+// Captura de imagen desde cámara
+captureBtn.addEventListener('click', () => {
+  drawAndSendImage(video);
 });
 
-// Convertir base64 a Blob
-function dataURLtoBlob(dataurl) {
-  const arr = dataurl.split(',');
-  const mime = arr[0].match(/:(.*?);/)[1];
-  const bstr = atob(arr[1]);
-  let n = bstr.length;
-  const u8arr = new Uint8Array(n);
-  while (n--) {
-    u8arr[n] = bstr.charCodeAt(n);
-  }
-  return new Blob([u8arr], { type: mime });
-}
+// Cambio de cámara
+switchCameraBtn.addEventListener('click', () => {
+  const newFacingMode = currentCamera === 'environment' ? 'user' : 'environment';
+  startCamera(newFacingMode);
+});
+
+// Subida de imagen desde el dispositivo
+uploadInput.addEventListener('change', event => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const img = new Image();
+    img.onload = function () {
+      drawAndSendImage(img);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+// Iniciar con cámara trasera si es posible
+startCamera();

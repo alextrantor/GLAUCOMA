@@ -1,81 +1,114 @@
-/* style.css */
-
-/* General Reset */
+/* General */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', sans-serif;
-  }
-  
-  body {
-    background: linear-gradient(to bottom right, #eaf6ff, #ffffff);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
-  }
-  
-  .container {
-    background-color: #fff;
-    border-radius: 16px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-    padding: 25px;
-    width: 100%;
-    max-width: 400px;
-    text-align: center;
-  }
-  
-  h1 {
-    font-size: 24px;
-    color: #1a1a1a;
-    margin-bottom: 20px;
-  }
-  
-  .camera {
-    position: relative;
-    overflow: hidden;
-    border-radius: 12px;
-    border: 2px solid #ccc;
-    margin-bottom: 15px;
-  }
-  
-  video {
-    width: 100%;
-    border-radius: 12px;
-  }
-  
-  .buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .capture-button {
-    background-color: #0077cc;
-    color: #fff;
-    padding: 12px;
-    font-size: 16px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .capture-button:hover {
-    background-color: #005fa3;
-  }
-  
-  .loading {
-    margin-top: 15px;
-    color: #888;
-    font-style: italic;
-  }
-  
-  .result {
-    margin-top: 15px;
-    font-size: 16px;
-    color: #333;
-    font-weight: 500;
-  }
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #f2f5f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #222;
+}
+
+/* Video y cámara */
+.camera {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+video {
+  width: 100%;
+  border-radius: 12px;
+  border: 2px solid #ccc;
+}
+
+canvas {
+  display: none;
+}
+
+/* Botones */
+.buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+button,
+label[for="uploadInput"] {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover,
+label[for="uploadInput"]:hover {
+  background-color: #0056b3;
+}
+
+button i,
+label i {
+  font-size: 18px;
+}
+
+button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+/* Imagen cargada */
+.result img {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-top: 10px;
+  border: 2px solid #ccc;
+}
+
+.result {
+  margin-top: 15px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+.loading {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #666;
+}
