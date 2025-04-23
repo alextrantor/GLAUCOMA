@@ -1,106 +1,81 @@
-/* Reset básico */
+/* style.css */
+
+/* General Reset */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', sans-serif;
   }
   
-  /* Fondo general */
   body {
-    background-color: #f4f6f9;
-    min-height: 100vh;
+    background: linear-gradient(to bottom right, #eaf6ff, #ffffff);
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 100vh;
     padding: 20px;
   }
   
-  /* Contenedor principal */
   .container {
-    background: white;
+    background-color: #fff;
     border-radius: 16px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    padding: 24px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+    padding: 25px;
     width: 100%;
     max-width: 400px;
     text-align: center;
   }
   
-  /* Título */
   h1 {
     font-size: 24px;
-    color: #2c3e50;
+    color: #1a1a1a;
     margin-bottom: 20px;
   }
   
-  /* Contenedor de la cámara */
   .camera {
     position: relative;
-    margin-bottom: 20px;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 2px solid #ccc;
+    margin-bottom: 15px;
   }
   
-  /* Vista previa del video */
   video {
     width: 100%;
     border-radius: 12px;
-    border: 2px solid #ccc;
   }
   
-  /* Botones */
-  .btn {
-    background-color: #3498db;
-    color: white;
-    padding: 10px 16px;
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .capture-button {
+    background-color: #0077cc;
+    color: #fff;
+    padding: 12px;
+    font-size: 16px;
     border: none;
     border-radius: 8px;
-    font-size: 14px;
-    margin: 8px 4px;
     cursor: pointer;
-    width: calc(100% - 8px);
     transition: background-color 0.3s ease;
   }
   
-  .btn:hover {
-    background-color: #2980b9;
+  .capture-button:hover {
+    background-color: #005fa3;
   }
   
-  /* Botón alternativo */
-  .secondary {
-    background-color: #95a5a6;
-  }
-  
-  .secondary:hover {
-    background-color: #7f8c8d;
-  }
-  
-  /* Input de archivo oculto */
-  .file-label {
-    display: inline-block;
-    cursor: pointer;
-  }
-  
-  /* Loading */
   .loading {
-    margin-top: 10px;
-    color: #7f8c8d;
+    margin-top: 15px;
+    color: #888;
     font-style: italic;
   }
   
-  /* Imagen capturada */
-  #capturedImage {
-    width: 100%;
-    max-height: 250px;
-    object-fit: contain;
-    border-radius: 12px;
-    margin-top: 10px;
-    border: 2px solid #ccc;
-  }
-  
-  /* Resultado */
   .result {
-    margin-top: 20px;
+    margin-top: 15px;
     font-size: 16px;
-    font-weight: bold;
-    color: #2d3436;
+    color: #333;
+    font-weight: 500;
   }

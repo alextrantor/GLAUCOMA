@@ -13,24 +13,13 @@
     <div class="camera">
       <video id="video" autoplay playsinline></video>
       <canvas id="canvas" style="display: none;"></canvas>
-
-      <div class="controls">
-        <button id="capture" class="btn">📸 Capturar Foto</button>
-        <label class="btn file-label">
-          📁 Subir Imagen
-          <input type="file" id="fileInput" accept="image/*" hidden />
-        </label>
-        <button id="reset" class="btn secondary">🔄 Reiniciar</button>
-      </div>
     </div>
 
-    <div id="loading" class="loading" style="display: none;">⏳ Procesando imagen...</div>
-
-    <div id="capturedImageContainer" style="display: none;">
-      <h3>Imagen Procesada</h3>
-      <img id="capturedImage" alt="Imagen capturada" />
+    <div class="buttons">
+      <button id="capture" class="capture-button">Capturar</button>
     </div>
 
+    <div id="loading" class="loading" style="display: none;">Procesando...</div>
     <div id="result" class="result"></div>
   </div>
 
