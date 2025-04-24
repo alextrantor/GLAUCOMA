@@ -3,30 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Detector de Glaucoma</title>
+  <title>Detección de Glaucoma</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
   <div class="container">
-    <h1>Detector de Glaucoma</h1>
+    <h1>Detección de Glaucoma</h1>
 
-    <div class="camera">
+    <div class="video-container">
       <video id="video" autoplay playsinline></video>
       <canvas id="canvas" style="display: none;"></canvas>
-      <div id="capturedImageContainer" style="display: none;">
-        <h3>Imagen Seleccionada:</h3>
-        <img id="capturedImage" alt="Imagen seleccionada" />
-      </div>
-
-      <div class="buttons">
-        <button id="switchCamera" title="Cambiar cámara">🔄</button>
-        <button id="capture" title="Capturar imagen">📸</button>
-        <input type="file" id="upload" accept="image/*" hidden />
-        <label for="upload" class="upload-label" title="Subir imagen">📂</label>
+      <div class="button-group">
+        <button id="switchCameraBtn" title="Cambiar cámara">🔁</button>
+        <button id="captureBtn" title="Capturar imagen">📷</button>
+        <input type="file" id="uploadInput" accept="image/*" hidden>
+        <button id="uploadBtn" title="Subir imagen">📁</button>
       </div>
     </div>
 
-    <div id="loading" class="loading" style="display: none;">Procesando...</div>
+    <div id="previewContainer" class="preview-container hidden">
+      <h2>Vista previa</h2>
+      <img id="previewImage" />
+      <div class="button-group">
+        <button id="confirmBtn" class="confirm">✅ Confirmar</button>
+        <button id="cancelBtn" class="cancel">❌ Cancelar</button>
+      </div>
+    </div>
+
+    <div id="loading" class="loading hidden">Analizando imagen...</div>
     <div id="result" class="result"></div>
   </div>
 
