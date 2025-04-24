@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Detector de Glaucoma</title>
   <link rel="stylesheet" href="style.css"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 </head>
 <body>
   <div class="container">
@@ -14,21 +13,17 @@
     <div class="camera">
       <video id="video" autoplay playsinline></video>
       <canvas id="canvas" style="display: none;"></canvas>
+      <div id="capturedImageContainer" style="display: none;">
+        <h3>Imagen Seleccionada:</h3>
+        <img id="capturedImage" alt="Imagen seleccionada" />
+      </div>
 
       <div class="buttons">
-        <button id="capture" class="icon-button" title="Tomar foto">
-          <i class="fas fa-camera"></i>
-        </button>
-        <label for="upload" class="icon-button" title="Subir imagen">
-          <i class="fas fa-upload"></i>
-        </label>
-        <input type="file" id="upload" accept="image/*" style="display: none;" />
+        <button id="switchCamera" title="Cambiar cámara">🔄</button>
+        <button id="capture" title="Capturar imagen">📸</button>
+        <input type="file" id="upload" accept="image/*" hidden />
+        <label for="upload" class="upload-label" title="Subir imagen">📂</label>
       </div>
-    </div>
-
-    <div id="previewContainer" class="preview-container" style="display: none;">
-      <h3>Imagen seleccionada:</h3>
-      <img id="capturedImage" alt="Imagen" />
     </div>
 
     <div id="loading" class="loading" style="display: none;">Procesando...</div>
