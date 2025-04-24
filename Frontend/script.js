@@ -11,22 +11,26 @@ const capturedImageContainer = document.getElementById('capturedImageContainer')
 let currentStream = null;
 let usingFrontCamera = false;
 
-// Función para iniciar la cámara
+// Iniciar cámara
 async function startCamera() {
   if (currentStream) {
     currentStream.getTracks().forEach(track => track.stop());
   }
 
+  const constraints = {
+    video: {
+      facingMode: usingFrontCamera ? "user" : { exact: "environment" }
+    }
+  };
+
   try {
-    const constraints = {
-      video: {
-        facingMode: usingFrontCamera ? "user" : { exact: "environment" }
-      }
-    };
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
     currentStream = stream;
     video.srcObject = stream;
+    video.play();
+    video.style.display = 'block';
   } catch (err) {
+    console.warn("No se encontró cámara trasera, intentando frontal...");
     if (!usingFrontCamera) {
       usingFrontCamera = true;
       startCamera();
@@ -38,48 +42,43 @@ async function startCamera() {
 
 startCamera();
 
-// Cambiar entre cámara frontal y trasera
+// Cambiar cámara
 switchCameraBtn.addEventListener('click', () => {
   usingFrontCamera = !usingFrontCamera;
   startCamera();
 });
 
-// Procesa una imagen (capturada o subida)
-function processAndSendImage(imageSource) {
-  const ctx = canvas.getContext('2d');
+// Procesar imagen estandarizada y enviarla
+function processImage(imageSource) {
   const img = new Image();
   img.onload = () => {
-    // Crear canvas cuadrado y centrar la imagen
     const size = 128;
     canvas.width = size;
     canvas.height = size;
-    ctx.fillStyle = "white"; // fondo blanco
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = "white";
     ctx.fillRect(0, 0, size, size);
 
-    let scale = Math.min(size / img.width, size / img.height);
-    let w = img.width * scale;
-    let h = img.height * scale;
-    let x = (size - w) / 2;
-    let y = (size - h) / 2;
-
+    const scale = Math.min(size / img.width, size / img.height);
+    const w = img.width * scale;
+    const h = img.height * scale;
+    const x = (size - w) / 2;
+    const y = (size - h) / 2;
     ctx.drawImage(img, x, y, w, h);
 
-    // Mostrar la imagen procesada
     const previewURL = canvas.toDataURL('image/jpeg');
     capturedImage.src = previewURL;
     capturedImageContainer.style.display = 'block';
     video.style.display = 'none';
-    if (currentStream) {
-      currentStream.getTracks().forEach(track => track.stop());
-    }
+    if (currentStream) currentStream.getTracks().forEach(track => track.stop());
 
     loadingDiv.style.display = 'block';
     resultDiv.innerHTML = "";
 
-    // Convertir a blob y enviar
     canvas.toBlob(blob => {
       const formData = new FormData();
-      formData.append('image', blob, 'imagen.jpg');
+      formData.append('image', blob, 'image.jpg');
 
       fetch('https://glaucoma-ntk9.onrender.com/predict', {
         method: 'POST',
@@ -91,7 +90,7 @@ function processAndSendImage(imageSource) {
           if (res.ok) {
             resultDiv.innerHTML = `<strong>Resultado:</strong> ${data.prediction}<br><strong>Confianza:</strong> ${data.confidence.toFixed(2)}`;
           } else {
-            resultDiv.innerHTML = "Error: " + JSON.stringify(data);
+            resultDiv.innerHTML = "Error del servidor: " + JSON.stringify(data);
           }
         })
         .catch(err => {
@@ -103,11 +102,24 @@ function processAndSendImage(imageSource) {
   img.src = imageSource;
 }
 
-// Capturar imagen desde la cámara
+// Capturar imagen desde cámara
 captureBtn.addEventListener('click', () => {
-  const snapshot = document.createElement('canvas');
-  snapshot.width = video.videoWidth;
-  snapshot.height = video.videoHeight;
-  snapshot.getContext('2d').drawImage(video, 0, 0);
-  const imageData = snapshot.toDataURL('image/jpeg');
-  processAndSendImage(imageData
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = video.videoWidth;
+  tempCanvas.height = video.videoHeight;
+  tempCanvas.getContext('2d').drawImage(video, 0, 0);
+  const imageData = tempCanvas.toDataURL('image/jpeg');
+  processImage(imageData);
+});
+
+// Cargar imagen desde el dispositivo
+uploadInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    processImage(reader.result);
+  };
+  reader.readAsDataURL(file);
+});
