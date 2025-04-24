@@ -1,85 +1,79 @@
 * {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', sans-serif;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
 }
 
 body {
-  background-color: #e8f0fe;
+  background-color: #f0f4f8;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  height: 100vh;
   padding: 20px;
 }
 
 .container {
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-  padding: 25px;
-  width: 100%;
-  max-width: 420px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
   text-align: center;
+  width: 350px;
 }
 
 h1 {
-  font-size: 24px;
-  color: #333;
+  font-size: 22px;
   margin-bottom: 20px;
+  color: #333;
 }
 
 .camera {
   position: relative;
+  margin-bottom: 10px;
 }
 
 video {
   width: 100%;
-  border-radius: 10px;
-  border: 2px solid #ccc;
+  border-radius: 8px;
+  border: 2px solid #ddd;
 }
 
-#capturedImage {
+img#capturedImage {
   width: 100%;
-  border-radius: 10px;
-  border: 2px solid #ccc;
-  margin-top: 10px;
+  max-height: 250px;
   object-fit: contain;
+  border-radius: 8px;
+  border: 2px solid #ddd;
 }
 
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 15px;
-}
-
-button, input[type="file"] {
-  background-color: #1976d2;
+.icon-button {
+  background-color: #4CAF50;
   color: white;
   border: none;
   padding: 10px;
-  font-size: 15px;
-  border-radius: 6px;
+  font-size: 18px;
+  margin: 5px;
+  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s;
 }
 
-button:hover, input[type="file"]:hover {
-  background-color: #155fa0;
+.icon-button:hover {
+  background-color: #45a049;
+}
+
+.preview-container {
+  margin-top: 20px;
 }
 
 .loading {
-  margin-top: 20px;
-  color: #555;
-  font-style: italic;
+  color: #888;
+  margin-top: 10px;
 }
 
 .result {
   margin-top: 20px;
   font-size: 18px;
   font-weight: bold;
-  color: #222;
 }

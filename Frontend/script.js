@@ -1,137 +1,141 @@
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const captureBtn = document.getElementById('capture');
-const fileInput = document.getElementById('fileInput');
-const resultDiv = document.getElementById('result');
-const capturedImage = document.getElementById('capturedImage');
-const capturedContainer = document.getElementById('capturedImageContainer');
+const uploadInput = document.getElementById('upload');
+const preview = document.getElementById('capturedImage');
+const previewContainer = document.getElementById('previewContainer');
 const loading = document.getElementById('loading');
-const retryBtn = document.getElementById('retry');
-const switchCamBtn = document.getElementById('switchCamera');
+const resultDiv = document.getElementById('result');
 
-let currentStream = null;
-let usingFrontCamera = false;
+let stream;
+let currentFacingMode = "environment";
 
-function stopCamera() {
-  if (currentStream) {
-    currentStream.getTracks().forEach(track => track.stop());
-    currentStream = null;
-  }
-}
-
-async function startCamera(facingMode = "environment") {
-  stopCamera();
+async function initCamera(facingMode = "environment") {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
-    currentStream = stream;
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
     video.srcObject = stream;
     video.play();
   } catch (err) {
-    console.warn("No se pudo usar la cámara solicitada, intentando con otra...");
     if (facingMode === "environment") {
-      startCamera("user");
-      usingFrontCamera = true;
+      initCamera("user");
     } else {
-      resultDiv.innerHTML = "No se pudo acceder a la cámara.";
+      resultDiv.innerText = "No se pudo acceder a la cámara.";
     }
   }
 }
 
-// Cambiar entre cámaras
-switchCamBtn.addEventListener('click', () => {
-  usingFrontCamera = !usingFrontCamera;
-  const mode = usingFrontCamera ? "user" : "environment";
-  startCamera(mode);
-});
-
-// Reiniciar cámara
-retryBtn.addEventListener('click', () => {
-  resultDiv.innerHTML = '';
-  capturedContainer.style.display = 'none';
-  video.style.display = 'block';
-  startCamera(usingFrontCamera ? "user" : "environment");
-});
-
-// Capturar imagen desde cámara
-captureBtn.addEventListener('click', () => {
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-  const dataURL = canvas.toDataURL('image/jpeg');
-  video.style.display = 'none';
-  stopCamera();
-
-  capturedImage.src = dataURL;
-  capturedContainer.style.display = 'block';
-
-  sendToServer(canvas);
-});
-
-// Subir imagen desde archivo
-fileInput.addEventListener('change', event => {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    capturedImage.src = e.target.result;
-    capturedContainer.style.display = 'block';
-    video.style.display = 'none';
-  };
-  reader.readAsDataURL(file);
-
-  sendToServer(file);
-});
-
-// Enviar imagen al backend
-function sendToServer(imageSource) {
-  resultDiv.innerHTML = '';
-  loading.style.display = 'block';
-
-  const formData = new FormData();
-  if (imageSource instanceof Blob) {
-    formData.append('image', imageSource, 'captura.jpg');
-  } else if (imageSource instanceof HTMLCanvasElement) {
-    imageSource.toBlob(blob => {
-      formData.append('image', blob, 'captura.jpg');
-      makeRequest(formData);
-    }, 'image/jpeg');
-    return;
-  } else if (imageSource instanceof File) {
-    formData.append('image', imageSource);
+function stopCamera() {
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
   }
-
-  makeRequest(formData);
 }
 
-function makeRequest(formData) {
+function standardizeImage(img, callback) {
+  const tempCanvas = document.createElement('canvas');
+  const size = 128;
+  tempCanvas.width = size;
+  tempCanvas.height = size;
+  const ctx = tempCanvas.getContext('2d');
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, size, size);
+
+  const aspect = img.width / img.height;
+  let drawWidth, drawHeight, offsetX, offsetY;
+
+  if (aspect > 1) {
+    drawWidth = size;
+    drawHeight = size / aspect;
+    offsetX = 0;
+    offsetY = (size - drawHeight) / 2;
+  } else {
+    drawHeight = size;
+    drawWidth = size * aspect;
+    offsetX = (size - drawWidth) / 2;
+    offsetY = 0;
+  }
+
+  ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+  callback(tempCanvas);
+}
+
+function showPreview(dataUrl) {
+  preview.src = dataUrl;
+  previewContainer.style.display = "block";
+  loading.style.display = "none";
+}
+
+function sendToServer(blob) {
+  loading.style.display = "block";
+  resultDiv.innerHTML = "";
+
+  const formData = new FormData();
+  formData.append('image', blob, 'image.jpg');
+
   fetch('https://glaucoma-ntk9.onrender.com/predict', {
     method: 'POST',
     body: formData
   })
     .then(async res => {
-      loading.style.display = 'none';
       let data;
       try {
         data = await res.json();
       } catch (e) {
-        resultDiv.innerHTML = "Error al interpretar la respuesta del servidor.";
+        resultDiv.innerHTML = "Error en la respuesta del servidor: " + await res.text();
         return;
       }
 
       if (res.ok) {
         resultDiv.innerHTML = `<strong>Resultado:</strong> ${data.prediction}<br><strong>Confianza:</strong> ${data.confidence.toFixed(2)}`;
       } else {
-        resultDiv.innerHTML = `Error del servidor: ${JSON.stringify(data)}`;
+        resultDiv.innerHTML = "Error: " + JSON.stringify(data);
       }
     })
     .catch(err => {
-      loading.style.display = 'none';
-      resultDiv.innerHTML = "Error al enviar la imagen: " + err.message;
+      resultDiv.innerHTML = "Error al enviar imagen: " + err.message;
+    })
+    .finally(() => {
+      loading.style.display = "none";
     });
 }
 
-// Iniciar cámara al cargar
-window.addEventListener('load', () => {
-  startCamera();
+// Captura de imagen desde la cámara
+captureBtn.addEventListener('click', () => {
+  stopCamera();
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+  const image = new Image();
+  image.onload = () => {
+    standardizeImage(image, standardized => {
+      standardized.toBlob(blob => {
+        showPreview(standardized.toDataURL('image/jpeg'));
+        sendToServer(blob);
+      }, 'image/jpeg');
+    });
+  };
+  image.src = canvas.toDataURL('image/jpeg');
 });
+
+// Subida de imagen desde archivo
+uploadInput.addEventListener('change', (e) => {
+  if (e.target.files.length === 0) return;
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function (evt) {
+    const image = new Image();
+    image.onload = () => {
+      standardizeImage(image, standardized => {
+        standardized.toBlob(blob => {
+          showPreview(standardized.toDataURL('image/jpeg'));
+          sendToServer(blob);
+        }, 'image/jpeg');
+      });
+    };
+    image.src = evt.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+// Iniciar con la cámara trasera si es posible
+initCamera();
