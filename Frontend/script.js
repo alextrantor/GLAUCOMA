@@ -1,93 +1,96 @@
-const imageUpload = document.getElementById('image-upload');
-const imagePreview = document.getElementById('image-preview');
-const confirmBtn = document.getElementById('confirm-btn');
-const retryBtn = document.getElementById('retry-btn');
-const resultSection = document.getElementById('result-section');
-const resultNervioOptico = document.getElementById('result-nervio-optico');
-const resultGlaucoma = document.getElementById('result-glaucoma');
-const probabilidadGlaucoma = document.getElementById('probabilidad-glaucoma');
+let currentStream;
+let usingFrontCamera = false;
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const preview = document.getElementById('preview');
+const fileInput = document.getElementById('fileInput');
+const confirmSection = document.getElementById('confirmSection');
+const resultDiv = document.getElementById('result');
+const loading = document.getElementById('loading');
 
-// Manejador de carga de imagen
-imageUpload.addEventListener('change', handleImageUpload);
+async function startCamera() {
+  if (currentStream) {
+    currentStream.getTracks().forEach(track => track.stop());
+  }
 
-function handleImageUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.src = e.target.result;
-            img.onload = function() {
-                // Redimensionamos la imagen a 224x224 para estandarizarla
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const maxSize = 224;
-                let width = img.width;
-                let height = img.height;
-
-                // Calculamos el nuevo tamaño basado en el maxSize
-                if (width > height) {
-                    if (width > maxSize) {
-                        height *= maxSize / width;
-                        width = maxSize;
-                    }
-                } else {
-                    if (height > maxSize) {
-                        width *= maxSize / height;
-                        height = maxSize;
-                    }
-                }
-
-                // Dibujamos la imagen redimensionada
-                canvas.width = width;
-                canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
-
-                // Mostramos la imagen redimensionada
-                imagePreview.innerHTML = '';
-                imagePreview.appendChild(canvas);
-
-                // Muestra botones de confirmación
-                confirmBtn.style.display = 'inline-block';
-                retryBtn.style.display = 'inline-block';
-            };
-        };
-        reader.readAsDataURL(file);
-    }
+  try {
+    currentStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: usingFrontCamera ? 'user' : 'environment' },
+      audio: false
+    });
+    video.srcObject = currentStream;
+  } catch (e) {
+    alert('No se pudo acceder a la cámara.');
+  }
 }
 
-// Confirmar la imagen para procesarla
-confirmBtn.addEventListener('click', () => {
-    const formData = new FormData();
-    formData.append('file', imageUpload.files[0]);
-
-    fetch('http://localhost:5000/analizar/', { // Cambia la URL por la de tu backend
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.nervio_optico === "No detectado") {
-            resultNervioOptico.innerHTML = "No se detectó un nervio óptico en la imagen.";
-            resultGlaucoma.innerHTML = "";
-            probabilidadGlaucoma.innerHTML = "";
-        } else {
-            resultNervioOptico.innerHTML = "Nervio óptico detectado.";
-            resultGlaucoma.innerHTML = "Resultado de glaucoma: " + data.glaucoma;
-            probabilidadGlaucoma.innerHTML = "Probabilidad de glaucoma: " + (data.probabilidad_glaucoma * 100).toFixed(2) + "%";
-        }
-        resultSection.style.display = 'block';
-    })
-    .catch(error => {
-        console.error('Error al procesar la imagen:', error);
-    });
+document.getElementById('flipBtn').addEventListener('click', () => {
+  usingFrontCamera = !usingFrontCamera;
+  startCamera();
 });
 
-// Volver a intentar subir otra imagen
-retryBtn.addEventListener('click', () => {
-    imagePreview.innerHTML = '<p>No se ha subido ninguna imagen.</p>';
-    resultSection.style.display = 'none';
-    confirmBtn.style.display = 'none';
-    retryBtn.style.display = 'none';
-    imageUpload.value = ''; // Limpiar el input
+document.getElementById('captureBtn').addEventListener('click', () => {
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  showPreview(canvas.toDataURL());
 });
+
+document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = ev => showPreview(ev.target.result);
+    reader.readAsDataURL(file);
+  }
+});
+
+function showPreview(dataUrl) {
+  video.classList.add('hidden');
+  preview.src = dataUrl;
+  preview.classList.remove('hidden');
+  confirmSection.classList.remove('hidden');
+  resultDiv.classList.add('hidden');
+}
+
+document.getElementById('cancelBtn').addEventListener('click', () => {
+  preview.classList.add('hidden');
+  video.classList.remove('hidden');
+  confirmSection.classList.add('hidden');
+});
+
+document.getElementById('confirmBtn').addEventListener('click', async () => {
+  loading.classList.remove('hidden');
+  confirmSection.classList.add('hidden');
+
+  const blob = await fetch(preview.src).then(res => res.blob());
+  const formData = new FormData();
+  formData.append('image', blob, 'image.jpg');
+
+  try {
+    const nervioResponse = await fetch('https://<tu-backend>.onrender.com/validate', { method: 'POST', body: formData });
+    const nervioResult = await nervioResponse.json();
+
+    if (!nervioResult.valid) {
+      loading.classList.add('hidden');
+      resultDiv.textContent = 'Imagen no válida. Por favor, sube un nervio óptico.';
+      resultDiv.classList.remove('hidden');
+      return;
+    }
+
+    const glaucomaResponse = await fetch('https://<tu-backend>.onrender.com/predict', { method: 'POST', body: formData });
+    const glaucomaResult = await glaucomaResponse.json();
+
+    loading.classList.add('hidden');
+    resultDiv.innerHTML = `Resultado: ${glaucomaResult.prediction}<br>Confianza: ${(glaucomaResult.confidence * 100).toFixed(2)}%`;
+    resultDiv.classList.remove('hidden');
+  } catch (e) {
+    loading.classList.add('hidden');
+    resultDiv.textContent = 'Error al analizar la imagen.';
+    resultDiv.classList.remove('hidden');
+  }
+});
+
+startCamera();
