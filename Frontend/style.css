@@ -1,94 +1,101 @@
+/* Reset */
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background: #f8f9fa;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  min-height: 100vh;
-}
-
-.container {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-  width: 100%;
-  max-width: 400px;
-  text-align: center;
-}
-
-h1 {
-  font-size: 22px;
-  margin-bottom: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
   color: #333;
 }
 
-.video-container {
-  position: relative;
-}
-
-video {
-  width: 100%;
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
-  border: 2px solid #ccc;
 }
 
-.button-group {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
+header {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-button {
-  padding: 8px 12px;
-  font-size: 18px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  background: #007bff;
+header h1 {
+  color: #2c3e50;
+}
+
+.upload-btn {
+  background-color: #3498db;
   color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  display: inline-block;
 }
 
-button.confirm {
-  background: #28a745;
-}
-
-button.cancel {
-  background: #dc3545;
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-.preview-container {
-  margin-top: 20px;
-}
-
-.preview-container img {
-  width: 100%;
-  border-radius: 10px;
-  border: 2px solid #ccc;
-}
-
-.hidden {
+input[type="file"] {
   display: none;
 }
 
-.loading {
-  margin-top: 15px;
-  font-weight: bold;
-  color: #555;
+#preview-container {
+  margin-top: 20px;
+  text-align: center;
 }
 
-.result {
-  margin-top: 15px;
+.preview {
+  background-color: #ecf0f1;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 5px;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7f8c8d;
+}
+
+button {
+  background-color: #2ecc71;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
   font-size: 16px;
-  color: #222;
+  margin: 10px 5px;
+  display: inline-block;
+}
+
+button:hover {
+  background-color: #27ae60;
+}
+
+button:disabled {
+  background-color: #bdc3c7;
+}
+
+footer {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.result-container {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #ecf0f1;
+  border-radius: 5px;
+  display: none;
+}
+
+.result-container p {
+  font-size: 18px;
+  margin: 5px 0;
+  text-align: center;
+  color: #2c3e50;
 }

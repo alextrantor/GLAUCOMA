@@ -1,147 +1,65 @@
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const previewContainer = document.getElementById('previewContainer');
-const previewImage = document.getElementById('previewImage');
-const resultDiv = document.getElementById('result');
-const loadingDiv = document.getElementById('loading');
-const switchCameraBtn = document.getElementById('switchCameraBtn');
-const captureBtn = document.getElementById('captureBtn');
-const uploadBtn = document.getElementById('uploadBtn');
-const uploadInput = document.getElementById('uploadInput');
-const confirmBtn = document.getElementById('confirmBtn');
-const cancelBtn = document.getElementById('cancelBtn');
+const imageUpload = document.getElementById('image-upload');
+const imagePreview = document.getElementById('image-preview');
+const confirmBtn = document.getElementById('confirm-btn');
+const retryBtn = document.getElementById('retry-btn');
+const resultContainer = document.getElementById('result-container');
+const resultNervioOptico = document.getElementById('result-nervio-optico');
+const resultGlaucoma = document.getElementById('result-glaucoma');
+const probabilidadGlaucoma = document.getElementById('probabilidad-glaucoma');
 
-let currentStream = null;
-let useFrontCamera = false;
-let currentImageBlob = null;
+// Manejador de carga de imagen
+imageUpload.addEventListener('change', handleImageUpload);
 
-// ⏯ Inicializa cámara (trasera por defecto)
-async function startCamera() {
-  if (currentStream) {
-    currentStream.getTracks().forEach(track => track.stop());
-  }
-
-  const constraints = {
-    video: { facingMode: useFrontCamera ? "user" : "environment" },
-    audio: false
-  };
-
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    video.srcObject = stream;
-    currentStream = stream;
-  } catch (err) {
-    console.error("No se pudo acceder a la cámara:", err);
-    resultDiv.textContent = "No se pudo acceder a la cámara.";
-  }
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = function() {
+                imagePreview.innerHTML = '';
+                imagePreview.appendChild(img);
+                confirmBtn.style.display = 'inline-block';
+                retryBtn.style.display = 'inline-block';
+            };
+        };
+        reader.readAsDataURL(file);
+    }
 }
 
-// 🔄 Alternar entre cámaras
-switchCameraBtn.addEventListener('click', () => {
-  useFrontCamera = !useFrontCamera;
-  startCamera();
-});
-
-// 📷 Captura desde video y muestra vista previa
-captureBtn.addEventListener('click', () => {
-  if (!video.srcObject) return;
-
-  const width = 224;
-  const height = 224;
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, width, height);
-
-  video.srcObject.getTracks().forEach(track => track.stop());
-
-  canvas.toBlob(blob => {
-    currentImageBlob = blob;
-    showPreview(URL.createObjectURL(blob));
-  }, 'image/jpeg');
-});
-
-// 📁 Subir imagen desde dispositivo
-uploadBtn.addEventListener('click', () => {
-  uploadInput.click();
-});
-
-uploadInput.addEventListener('change', event => {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      const width = 224;
-      const height = 224;
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-      canvas.toBlob(blob => {
-        currentImageBlob = blob;
-        showPreview(canvas.toDataURL('image/jpeg'));
-      }, 'image/jpeg');
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-});
-
-// 👁‍🗨 Muestra vista previa y opciones
-function showPreview(imageUrl) {
-  previewImage.src = imageUrl;
-  previewContainer.classList.remove('hidden');
-  resultDiv.innerHTML = '';
-  loadingDiv.classList.add('hidden');
-}
-
-// ✅ Enviar imagen confirmada al backend
+// Confirmar la imagen para procesarla
 confirmBtn.addEventListener('click', () => {
-  if (!currentImageBlob) return;
+    const formData = new FormData();
+    formData.append('file', imageUpload.files[0]);
 
-  const formData = new FormData();
-  formData.append('image', currentImageBlob, 'captura.jpg');
-
-  previewContainer.classList.add('hidden');
-  loadingDiv.classList.remove('hidden');
-  resultDiv.innerHTML = '';
-
-  fetch('https://glaucoma-ntk9.onrender.com/predict', {
-    method: 'POST',
-    body: formData
-  })
-    .then(async res => {
-      let data;
-      try {
-        data = await res.json();
-      } catch (e) {
-        resultDiv.innerHTML = "Error al interpretar la respuesta del servidor.<br>Respuesta cruda: " + await res.text();
-        return;
-      }
-
-      if (res.ok) {
-        resultDiv.innerHTML = `<strong>Resultado:</strong> ${data.prediction}<br><strong>Confianza:</strong> ${data.confidence.toFixed(2)}`;
-      } else {
-        resultDiv.innerHTML = "Error del servidor: " + JSON.stringify(data);
-      }
+    fetch('http://localhost:5000/analizar/', { // Cambia la URL por la de tu backend
+        method: 'POST',
+        body: formData
     })
-    .catch(err => {
-      console.error("Error al enviar imagen:", err);
-      resultDiv.innerHTML = "Error al enviar la imagen: " + err.message;
+    .then(response => response.json())
+    .then(data => {
+        if (data.nervio_optico === "No detectado") {
+            resultNervioOptico.innerHTML = "No se detectó un nervio óptico en la imagen.";
+            resultGlaucoma.innerHTML = "";
+            probabilidadGlaucoma.innerHTML = "";
+        } else {
+            resultNervioOptico.innerHTML = "Nervio óptico detectado.";
+            resultGlaucoma.innerHTML = "Resultado de glaucoma: " + data.glaucoma;
+            probabilidadGlaucoma.innerHTML = "Probabilidad de glaucoma: " + (data.probabilidad_glaucoma * 100).toFixed(2) + "%";
+        }
+        resultContainer.style.display = 'block';
     })
-    .finally(() => {
-      loadingDiv.classList.add('hidden');
+    .catch(error => {
+        console.error('Error al procesar la imagen:', error);
     });
 });
 
-// ❌ Cancelar envío y reactivar cámara
-cancelBtn.addEventListener('click', () => {
-  previewContainer.classList.add('hidden');
-  currentImageBlob = null;
-  startCamera();
+// Volver a intentar subir otra imagen
+retryBtn.addEventListener('click', () => {
+    imagePreview.innerHTML = '<p>No se ha subido ninguna imagen.</p>';
+    resultContainer.style.display = 'none';
+    confirmBtn.style.display = 'none';
+    retryBtn.style.display = 'none';
+    imageUpload.value = ''; // Limpiar el input
 });
-
-startCamera();
