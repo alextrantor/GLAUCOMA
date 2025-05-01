@@ -2,7 +2,7 @@ const imageUpload = document.getElementById('image-upload');
 const imagePreview = document.getElementById('image-preview');
 const confirmBtn = document.getElementById('confirm-btn');
 const retryBtn = document.getElementById('retry-btn');
-const resultContainer = document.getElementById('result-container');
+const resultSection = document.getElementById('result-section');
 const resultNervioOptico = document.getElementById('result-nervio-optico');
 const resultGlaucoma = document.getElementById('result-glaucoma');
 const probabilidadGlaucoma = document.getElementById('probabilidad-glaucoma');
@@ -18,8 +18,36 @@ function handleImageUpload(event) {
             const img = new Image();
             img.src = e.target.result;
             img.onload = function() {
+                // Redimensionamos la imagen a 224x224 para estandarizarla
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const maxSize = 224;
+                let width = img.width;
+                let height = img.height;
+
+                // Calculamos el nuevo tamaño basado en el maxSize
+                if (width > height) {
+                    if (width > maxSize) {
+                        height *= maxSize / width;
+                        width = maxSize;
+                    }
+                } else {
+                    if (height > maxSize) {
+                        width *= maxSize / height;
+                        height = maxSize;
+                    }
+                }
+
+                // Dibujamos la imagen redimensionada
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Mostramos la imagen redimensionada
                 imagePreview.innerHTML = '';
-                imagePreview.appendChild(img);
+                imagePreview.appendChild(canvas);
+
+                // Muestra botones de confirmación
                 confirmBtn.style.display = 'inline-block';
                 retryBtn.style.display = 'inline-block';
             };
@@ -48,7 +76,7 @@ confirmBtn.addEventListener('click', () => {
             resultGlaucoma.innerHTML = "Resultado de glaucoma: " + data.glaucoma;
             probabilidadGlaucoma.innerHTML = "Probabilidad de glaucoma: " + (data.probabilidad_glaucoma * 100).toFixed(2) + "%";
         }
-        resultContainer.style.display = 'block';
+        resultSection.style.display = 'block';
     })
     .catch(error => {
         console.error('Error al procesar la imagen:', error);
@@ -58,7 +86,7 @@ confirmBtn.addEventListener('click', () => {
 // Volver a intentar subir otra imagen
 retryBtn.addEventListener('click', () => {
     imagePreview.innerHTML = '<p>No se ha subido ninguna imagen.</p>';
-    resultContainer.style.display = 'none';
+    resultSection.style.display = 'none';
     confirmBtn.style.display = 'none';
     retryBtn.style.display = 'none';
     imageUpload.value = ''; // Limpiar el input

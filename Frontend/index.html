@@ -5,38 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detección de Glaucoma</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Detección de Glaucoma</h1>
+            <p>Sube una imagen del nervio óptico para comenzar el análisis.</p>
         </header>
 
-        <div id="upload-container">
+        <section id="upload-section">
             <label for="image-upload" class="upload-btn">
-                <span>Subir una imagen</span>
+                <span>Sube tu Imagen</span>
             </label>
-            <input type="file" id="image-upload" accept="image/*">
-        </div>
+            <input type="file" id="image-upload" accept="image/*" hidden>
+        </section>
 
-        <div id="preview-container">
+        <section id="preview-section" style="display:none;">
             <h2>Vista previa</h2>
-            <div id="image-preview" class="preview">
-                <p>No se ha subido ninguna imagen.</p>
-            </div>
-            <button id="confirm-btn" class="btn" style="display: none;">Confirmar</button>
-            <button id="retry-btn" class="btn" style="display: none;">Volver a intentarlo</button>
-        </div>
+            <div id="image-preview"></div>
+            <button id="confirm-btn" class="btn">Confirmar Imagen</button>
+            <button id="retry-btn" class="btn">Volver a Intentarlo</button>
+        </section>
 
-        <div id="result-container" class="result-container">
-            <h2>Resultados</h2>
-            <p id="result-nervio-optico"></p>
-            <p id="result-glaucoma"></p>
-            <p id="probabilidad-glaucoma"></p>
-        </div>
+        <section id="result-section" style="display:none;">
+            <h2>Resultados del Análisis</h2>
+            <div id="result-nervio-optico"></div>
+            <div id="result-glaucoma"></div>
+            <div id="probabilidad-glaucoma"></div>
+        </section>
 
         <footer>
-            <p>&copy; 2025 Todos los derechos reservados</p>
+            <p>&copy; 2025 Todos los derechos reservados.</p>
         </footer>
     </div>
 

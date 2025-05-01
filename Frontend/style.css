@@ -6,58 +6,67 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
+  font-family: 'Roboto', sans-serif;
+  background-color: #f8f9fa;
   color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
 .container {
+  width: 100%;
   max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #fff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-}
-
-header {
+  background-color: white;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   text-align: center;
-  margin-bottom: 20px;
 }
 
 header h1 {
+  font-size: 2.5rem;
   color: #2c3e50;
+}
+
+header p {
+  font-size: 1rem;
+  color: #7f8c8d;
+  margin-top: 10px;
 }
 
 .upload-btn {
   background-color: #3498db;
   color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
+  font-size: 1.2rem;
+  padding: 15px 25px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 16px;
-  display: inline-block;
+  transition: all 0.3s ease;
+  margin-top: 30px;
+}
+
+.upload-btn:hover {
+  background-color: #2980b9;
 }
 
 input[type="file"] {
   display: none;
 }
 
-#preview-container {
+#preview-section {
   margin-top: 20px;
-  text-align: center;
 }
 
-.preview {
-  background-color: #ecf0f1;
+#image-preview {
+  max-width: 100%;
+  max-height: 300px;
+  margin: 10px 0;
+  border: 2px solid #ecf0f1;
   padding: 10px;
-  margin-top: 10px;
-  border-radius: 5px;
-  min-height: 150px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #7f8c8d;
+  background-color: #ecf0f1;
+  border-radius: 8px;
 }
 
 button {
@@ -67,9 +76,9 @@ button {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 16px;
-  margin: 10px 5px;
-  display: inline-block;
+  font-size: 1rem;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
 }
 
 button:hover {
@@ -80,22 +89,20 @@ button:disabled {
   background-color: #bdc3c7;
 }
 
-footer {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.result-container {
+#result-section {
   margin-top: 30px;
   padding: 20px;
   background-color: #ecf0f1;
-  border-radius: 5px;
-  display: none;
+  border-radius: 8px;
 }
 
-.result-container p {
-  font-size: 18px;
-  margin: 5px 0;
-  text-align: center;
+#result-section h2 {
+  font-size: 1.5rem;
   color: #2c3e50;
+}
+
+#result-section div {
+  font-size: 1.2rem;
+  color: #34495e;
+  margin-top: 10px;
 }
