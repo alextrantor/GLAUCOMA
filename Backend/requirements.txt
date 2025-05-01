@@ -5,3 +5,4 @@ pillow
 numpy
 flask-cors
 huggingface_hub
+request
