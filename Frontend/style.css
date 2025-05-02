@@ -1,106 +1,50 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   font-family: Arial, sans-serif;
-  background-color: #f4f4f9;
+  background-color: #f0f0f0;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  margin: 0;
 }
 
 .container {
   text-align: center;
   padding: 20px;
   background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 80%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
   max-width: 600px;
 }
 
-h1 {
-  color: #333;
-}
-
-.camera-container {
-  margin-bottom: 20px;
-}
-
-#captureBtn {
-  margin-top: 10px;
-  padding: 10px 20px;
+.upload-container input, .upload-container button {
+  margin: 10px 0;
+  padding: 10px;
   font-size: 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
   cursor: pointer;
 }
 
-#captureBtn:hover {
-  background-color: #0056b3;
-}
-
-.upload-container {
-  margin-top: 20px;
-}
-
-#uploadInput {
-  padding: 10px;
-  font-size: 16px;
-}
-
 .preview-container {
+  display: none;
   margin-top: 20px;
 }
 
 .preview-container img {
   max-width: 100%;
   height: auto;
-  border-radius: 10px;
 }
 
-.confirmation-buttons {
+#message {
   margin-top: 20px;
+  color: red;
 }
 
-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin: 10px;
-}
-
-#confirmBtn {
-  background-color: #28a745;
-  color: white;
-}
-
-#cancelBtn {
-  background-color: #dc3545;
-  color: white;
-}
-
-#resultContainer {
-  margin-top: 20px;
-  padding: 20px;
-  background-color: #f8f9fa;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-#resetBtn {
-  background-color: #ffc107;
-  color: black;
-}
-
-#resetBtn:hover, #confirmBtn:hover, #cancelBtn:hover {
-  opacity: 0.8;
-}
-
-@media (max-width: 600px) {
-  .container {
-      width: 95%;
-  }
+button[disabled] {
+  background-color: gray;
+  cursor: not-allowed;
 }

@@ -1,122 +1,70 @@
-// Variables globales
-let selectedImage = null;
-let videoStream = null;
-const videoElement = document.getElementById('video');
-const previewContainer = document.getElementById('previewContainer');
-const confirmBtn = document.getElementById('confirmBtn');
-const cancelBtn = document.getElementById('cancelBtn');
-const resetBtn = document.getElementById('resetBtn');
-const resultContainer = document.getElementById('resultContainer');
-const resultText = document.getElementById('resultText');
+let selectedImageFile = null;
 
-// Configuración del video
-async function setupCamera() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        videoElement.srcObject = stream;
-        videoStream = stream;
-    } catch (error) {
-        console.error("Error al acceder a la cámara:", error);
+// Manejador para input de imagen
+document.getElementById('imageInput').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    selectedImageFile = file;
+
+    const reader = new FileReader();
+    reader.onload = function (event) {
+        const preview = document.getElementById('imagePreview');
+        preview.src = event.target.result;
+        preview.style.display = 'block';
+
+        document.getElementById('imagePreviewContainer').style.display = 'block';
+        document.getElementById('submitBtn').disabled = false;
+        document.getElementById('message').innerText = '';
+    };
+    reader.readAsDataURL(file);
+});
+
+// Botón para enviar imagen
+function submitImage() {
+    if (!selectedImageFile) {
+        alert("Por favor selecciona o toma una imagen primero.");
+        return;
     }
-}
 
-setupCamera();
+    const formData = new FormData();
+    formData.append('image', selectedImageFile);
 
-// Captura de imagen
-document.getElementById('captureBtn').addEventListener('click', async () => {
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    canvas.width = videoElement.videoWidth;
-    canvas.height = videoElement.videoHeight;
-    context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('message').innerText = 'Procesando imagen...';
 
-    selectedImage = canvas.toDataURL('image/jpeg');
-    const imgElement = document.createElement('img');
-    imgElement.src = selectedImage;
-    imgElement.classList.add('captured-image');  // Añadido para estilo
+    fetch('https://glaucoma-ntk9.onrender.com/predict', {
+        method: 'POST',
+        body: formData
+    })
+    .then(async response => {
+        const data = await response.json();
 
-    previewContainer.innerHTML = ''; // Limpiar contenido previo
-    previewContainer.appendChild(imgElement); // Agregar imagen capturada
-
-    // Mostrar botones de confirmación
-    confirmBtn.style.display = 'inline-block';
-    cancelBtn.style.display = 'inline-block';
-});
-
-// Cancelar la captura
-cancelBtn.addEventListener('click', () => {
-    previewContainer.innerHTML = '';  // Limpiar imagen
-    confirmBtn.style.display = 'none';
-    cancelBtn.style.display = 'none';
-});
-
-// Confirmar la captura y enviar la imagen para validación
-confirmBtn.addEventListener('click', () => {
-    validateImage(selectedImage);
-    confirmBtn.style.display = 'none';
-    cancelBtn.style.display = 'none';
-});
-
-// Reiniciar la interfaz
-resetBtn.addEventListener('click', () => {
-    previewContainer.innerHTML = '';
-    resultContainer.style.display = 'none';
-    document.getElementById('uploadInput').style.display = 'inline-block';
-    document.getElementById('captureBtn').style.display = 'inline-block';
-});
-
-// Enviar la imagen al backend para validación
-async function validateImage(imageData) {
-    try {
-        const formData = new FormData();
-        const imageBlob = dataURLToBlob(imageData);
-        formData.append('image', imageBlob, 'image.jpg');
-
-        const response = await fetch('https://glaucoma-ntk9.onrender.com/predict', {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (result.error) {
-            resultText.innerHTML = `Error: ${result.error}`;
-            resultContainer.style.display = 'block';
+        if (!response.ok || data.error) {
+            document.getElementById('message').innerText = '❌ ' + (data.error || 'Error al analizar la imagen.');
+            resetPreview();
             return;
         }
 
-        if (result.prediction === 'Normal') {
-            resultText.innerHTML = `Predicción: Normal (Confianza: ${result.confidence.toFixed(2)})`;
-        } else {
-            resultText.innerHTML = `Predicción: Sospecha de Glaucoma (Confianza: ${result.confidence.toFixed(2)})`;
-        }
+        const pred = data.prediction;
+        const prob = (data.confidence * 100).toFixed(2);
 
-        resultContainer.style.display = 'block';
-    } catch (error) {
-        resultText.innerHTML = `Error al procesar la imagen: ${error.message}`;
-        resultContainer.style.display = 'block';
-    }
+        document.getElementById('message').innerHTML = `✅ <strong>Resultado:</strong> ${pred}<br><strong>Confianza:</strong> ${prob}%`;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('message').innerText = '❌ Error al procesar la imagen.';
+    })
+    .finally(() => {
+        document.getElementById('submitBtn').disabled = false;
+    });
 }
 
-// Función para convertir la imagen base64 a Blob
-function dataURLToBlob(dataUrl) {
-    const [header, base64Data] = dataUrl.split(',');
-    const mime = header.split(':')[1].split(';')[0];
-    const byteString = atob(base64Data);
-    const arrayBuffer = new ArrayBuffer(byteString.length);
-    const uintArray = new Uint8Array(arrayBuffer);
-
-    for (let i = 0; i < byteString.length; i++) {
-        uintArray[i] = byteString.charCodeAt(i);
-    }
-
-    return new Blob([uintArray], { type: mime });
-}
-
-.captured-image {
-    max-width: 100%;
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
+// Función auxiliar para reiniciar previsualización
+function resetPreview() {
+    selectedImageFile = null;
+    document.getElementById('imageInput').value = '';
+    document.getElementById('imagePreview').src = '';
+    document.getElementById('imagePreviewContainer').style.display = 'none';
+    document.getElementById('submitBtn').disabled = true;
 }

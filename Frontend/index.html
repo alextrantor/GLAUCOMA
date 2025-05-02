@@ -1,34 +1,32 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detección de Glaucoma</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Glaucomate</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="container">
-        <h1>Detección de Glaucoma</h1>
+  <div class="container">
+    <h1>Glaucomate</h1>
 
-        <div class="camera-container">
-            <video id="video" width="100%" autoplay></video>
-            <button id="captureBtn">Capturar Imagen</button>
-        </div>
+    <div class="upload-section">
+      <label for="imageInput" class="upload-btn">📷 Subir o tomar imagen</label>
+      <input type="file" id="imageInput" accept="image/*" capture="environment" hidden />
+    </div>
 
-        <div class="upload-container">
-            <input type="file" id="uploadInput" accept="image/*">
-        </div>
-
-        <div id="previewContainer" class="preview-container"></div>
-
-        <div class="confirmation-buttons">
-            <button id="confirmBtn" style="display:none;">Confirmar</button>
-            <button id="resetBtn">Reiniciar</button>
-          </div>
-  
+    <div id="imagePreviewContainer" class="preview-container" style="display: none;">
+      <p>Previsualización de la imagen:</p>
+      <img id="imagePreview" class="preview-img" alt="Vista previa" />
+      <div class="action-buttons">
+        <button id="submitBtn" onclick="submitImage()" disabled>✔️ Confirmar y analizar</button>
+        <button onclick="resetPreview()">🔁 Cambiar imagen</button>
       </div>
-      
-      <script src="script.js"></script>
-  </body>
-  </html>
-  
+    </div>
+
+    <div id="message" class="message-area"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
