@@ -1,80 +1,133 @@
-const imageInput = document.getElementById("imageInput");
-const imagePreview = document.getElementById("imagePreview");
-const previewContainer = document.getElementById("previewContainer");
+const uploadInput = document.getElementById("uploadInput");
+const captureButton = document.getElementById("captureButton");
 const confirmButton = document.getElementById("confirmButton");
 const cancelButton = document.getElementById("cancelButton");
-const resultContainer = document.getElementById("resultContainer");
-const predictionText = document.getElementById("predictionText");
-const resetButton = document.getElementById("resetButton");
+const cameraSelect = document.getElementById("cameraSelect");
+const resultDiv = document.getElementById("result");
+const previewImage = document.getElementById("previewImage");
+const video = document.getElementById("video");
 
-let selectedFile = null;
+let currentStream = null;
+let capturedImageBlob = null;
 
-imageInput.addEventListener("change", (e) => {
-  selectedFile = e.target.files[0];
-  if (!selectedFile) return;
+// Mostrar resultado
+function showResult(message, isError = false) {
+    resultDiv.innerText = message;
+    resultDiv.style.color = isError ? "red" : "green";
+    resultDiv.style.display = "block";
+}
 
-  const reader = new FileReader();
-  reader.onload = function (event) {
-    imagePreview.src = event.target.result;
-    previewContainer.style.display = "flex";
-  };
-  reader.readAsDataURL(selectedFile);
-});
-
-cancelButton.addEventListener("click", () => {
-  previewContainer.style.display = "none";
-  imageInput.value = "";
-  selectedFile = null;
-});
-
-confirmButton.addEventListener("click", async () => {
-  if (!selectedFile) return;
-
-  const formData = new FormData();
-  formData.append("image", selectedFile);
-
-  predictionText.innerText = "Analizando imagen...";
-  resultContainer.classList.remove("hidden");
-
-  try {
-    // Paso 1: Validar si es imagen de nervio
-    const nervioRes = await fetch("https://tubackend.onrender.com/predict_nervio", {
-      method: "POST",
-      body: formData,
-    });
-
-    const nervioData = await nervioRes.json();
-
-    if (!nervioRes.ok || nervioData.prediction !== "Nervio") {
-      predictionText.innerText = "La imagen no parece ser de un nervio óptico. Intenta con otra.";
-      return;
+// Iniciar cámara
+async function startCamera(facingMode = "environment") {
+    if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
     }
 
-    // Paso 2: Si es válida, enviar al modelo de glaucoma
-    const glaucomaRes = await fetch("https://tubackend.onrender.com/predict", {
-      method: "POST",
-      body: formData,
-    });
-
-    const result = await glaucomaRes.json();
-
-    if (!glaucomaRes.ok) {
-      predictionText.innerText = "Error en la predicción de glaucoma.";
-      return;
+    try {
+        currentStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode },
+            audio: false
+        });
+        video.srcObject = currentStream;
+    } catch (err) {
+        showResult("Error al acceder a la cámara", true);
     }
+}
 
-    // Mostrar predicción más probable
-    predictionText.innerText = `Diagnóstico: ${result.prediction} (Confianza: ${(result.confidence * 100).toFixed(1)}%)`;
+// Capturar imagen
+captureButton.onclick = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d").drawImage(video, 0, 0);
+    canvas.toBlob(blob => {
+        capturedImageBlob = blob;
+        previewImage.src = URL.createObjectURL(blob);
+        previewImage.style.display = "block";
+        confirmButton.style.display = "inline-block";
+        cancelButton.style.display = "inline-block";
+        resultDiv.style.display = "none";
+        video.style.display = "none";
+    }, "image/jpeg");
+};
 
-  } catch (error) {
-    predictionText.innerText = "Error al procesar la imagen.";
-    console.error(error);
-  }
-});
+// Subir desde dispositivo
+uploadInput.onchange = event => {
+    const file = event.target.files[0];
+    if (file) {
+        capturedImageBlob = file;
+        previewImage.src = URL.createObjectURL(file);
+        previewImage.style.display = "block";
+        confirmButton.style.display = "inline-block";
+        cancelButton.style.display = "inline-block";
+        resultDiv.style.display = "none";
+        video.style.display = "none";
+    }
+};
 
-resetButton.addEventListener("click", () => {
-  resultContainer.classList.add("hidden");
-  previewContainer.style.display = "none";
-  imageInput.value = "";
-  selectedFile = null;
-});
+// Cancelar
+cancelButton.onclick = () => {
+    previewImage.src = "";
+    previewImage.style.display = "none";
+    confirmButton.style.display = "none";
+    cancelButton.style.display = "none";
+    resultDiv.style.display = "none";
+    video.style.display = "block";
+    capturedImageBlob = null;
+};
+
+// Confirmar envío
+confirmButton.onclick = async () => {
+    if (!capturedImageBlob) return;
+
+    showResult("Analizando imagen...", false);
+
+    const formData = new FormData();
+    formData.append("image", capturedImageBlob);
+
+    try {
+        // Paso 1: validación de nervio óptico
+        const nervioResponse = await fetch("https://backend-glaucomate.onrender.com/predict_nervio", {
+            method: "POST",
+            body: formData
+        });
+
+        const nervioData = await nervioResponse.json();
+
+        if (!nervioResponse.ok || nervioData.prediction !== "nervio óptico") {
+            showResult("La imagen no contiene un nervio óptico. Intenta con otra.", true);
+            return;
+        }
+
+        // Paso 2: validación de glaucoma
+        const glaucomaResponse = await fetch("https://backend-glaucomate.onrender.com/predict", {
+            method: "POST",
+            body: formData
+        });
+
+        const glaucomaData = await glaucomaResponse.json();
+
+        if (!glaucomaResponse.ok) {
+            throw new Error(glaucomaData.error || "Error en el análisis de glaucoma.");
+        }
+
+        showResult(`${glaucomaData.prediction} (Confianza: ${(glaucomaData.confidence * 100).toFixed(1)}%)`);
+
+    } catch (error) {
+        showResult("Error al procesar la imagen. Intenta nuevamente.", true);
+        console.error(error);
+    }
+};
+
+// Invertir cámara
+cameraSelect.onclick = () => {
+    const currentFacing = video.dataset.facing === "environment" ? "user" : "environment";
+    video.dataset.facing = currentFacing;
+    startCamera(currentFacing);
+};
+
+// Iniciar al cargar
+window.onload = () => {
+    video.dataset.facing = "environment";
+    startCamera("environment");
+};
