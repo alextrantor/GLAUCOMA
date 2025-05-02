@@ -1,40 +1,41 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Detección de Glaucoma</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detección de Glaucoma</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>GLAUCOMATE</h1>
+    <div class="container">
+        <h1>Detección de Glaucoma en Imágenes del Nervio Óptico</h1>
 
-    <div class="buttons">
-      <input type="file" accept="image/*" id="uploadInput" hidden>
-      <button id="uploadBtn" title="Subir imagen">&#128194;</button>
-      <button id="cameraBtn" title="Abrir cámara">&#128247;</button>
-      <button id="flipBtn" title="Cambiar cámara">&#8645;</button>
-      <button id="captureBtn" title="Tomar foto">&#128247;</button>
-      <button id="resetBtn" title="Reiniciar">&#10226;</button>
+        <!-- Sección de subida de imagen -->
+        <div class="upload-section">
+            <input type="file" id="fileInput" accept="image/*" />
+            <button id="takePhotoBtn" class="button">Tomar Foto</button>
+        </div>
+
+        <!-- Vista previa de la imagen -->
+        <div id="imagePreview" class="image-preview">
+            <p>Vista previa de la imagen</p>
+            <img id="previewImg" src="" alt="Vista previa" />
+        </div>
+
+        <!-- Confirmación para enviar -->
+        <div id="confirmationSection" class="confirmation-section">
+            <button id="confirmBtn" class="button">Confirmar</button>
+            <button id="retryBtn" class="button">Reintentar</button>
+        </div>
+
+        <!-- Resultados -->
+        <div id="results" class="results">
+            <h2>Resultado</h2>
+            <p id="prediction"></p>
+            <p id="confidence"></p>
+        </div>
     </div>
 
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas" style="display: none;"></canvas>
-
-    <div id="previewSection">
-      <img id="previewImage" alt="Vista previa" />
-      <div class="actions">
-        <button id="confirmBtn">Confirmar</button>
-        <button id="cancelBtn">Cancelar</button>
-      </div>
-    </div>
-
-    <div id="resultSection">
-      <p id="resultText"></p>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

@@ -1,44 +1,90 @@
 body {
   font-family: Arial, sans-serif;
-  background: #f0f4f8;
+  background-color: #f8f9fa;
   margin: 0;
   padding: 0;
-  text-align: center;
 }
 
 .container {
-  max-width: 480px;
-  margin: auto;
+  max-width: 800px;
+  margin: 30px auto;
   padding: 20px;
+  text-align: center;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
-  color: #0077b6;
+  font-size: 24px;
+  margin-bottom: 20px;
 }
 
-.buttons button {
-  font-size: 24px;
-  margin: 5px;
+.upload-section {
+  margin-bottom: 20px;
+}
+
+#fileInput {
   padding: 10px;
+  border-radius: 5px;
+}
+
+#takePhotoBtn {
+  padding: 10px 20px;
+  margin-top: 10px;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
   cursor: pointer;
 }
 
-video, #previewImage {
+#takePhotoBtn:hover {
+  background-color: #0056b3;
+}
+
+.image-preview {
+  display: none;
+  margin-top: 20px;
+  text-align: center;
+}
+
+#previewImg {
   width: 100%;
-  max-width: 100%;
-  margin-top: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+  max-width: 400px;
+  margin: 20px 0;
 }
 
-.actions {
-  margin-top: 10px;
+.confirmation-section {
+  display: none;
+  margin-top: 20px;
 }
 
-#resultSection {
-  margin-top: 15px;
-  padding: 10px;
-  background-color: #ffffff;
-  border-radius: 6px;
-  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+.button {
+  padding: 10px 20px;
+  margin: 10px;
+  border-radius: 5px;
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: #218838;
+}
+
+.results {
+  display: none;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.results h2 {
+  font-size: 22px;
+}
+
+.results p {
+  font-size: 18px;
+  font-weight: bold;
 }
