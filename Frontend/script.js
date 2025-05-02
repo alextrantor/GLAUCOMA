@@ -1,70 +1,111 @@
-let selectedImageFile = null;
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const previewImage = document.getElementById('previewImage');
+const resultText = document.getElementById('resultText');
+const confirmBtn = document.getElementById('confirmBtn');
+const cancelBtn = document.getElementById('cancelBtn');
 
-// Manejador para input de imagen
-document.getElementById('imageInput').addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    if (!file) return;
+let stream;
+let usingFrontCamera = false;
+let capturedBlob = null;
 
-    selectedImageFile = file;
+// Mostrar imagen para confirmar
+function showPreview(blob) {
+  const url = URL.createObjectURL(blob);
+  previewImage.src = url;
+  document.getElementById('previewSection').style.display = 'block';
+  video.style.display = 'none';
+}
 
-    const reader = new FileReader();
-    reader.onload = function (event) {
-        const preview = document.getElementById('imagePreview');
-        preview.src = event.target.result;
-        preview.style.display = 'block';
+// Reiniciar vista
+function reset() {
+  document.getElementById('previewSection').style.display = 'none';
+  resultText.textContent = '';
+  video.style.display = 'block';
+  capturedBlob = null;
+}
 
-        document.getElementById('imagePreviewContainer').style.display = 'block';
-        document.getElementById('submitBtn').disabled = false;
-        document.getElementById('message').innerText = '';
-    };
-    reader.readAsDataURL(file);
-});
+// Capturar imagen del video
+document.getElementById('captureBtn').onclick = () => {
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  canvas.toBlob(blob => {
+    capturedBlob = blob;
+    showPreview(blob);
+  }, 'image/jpeg');
+};
 
-// Botón para enviar imagen
-function submitImage() {
-    if (!selectedImageFile) {
-        alert("Por favor selecciona o toma una imagen primero.");
-        return;
-    }
+// Subir imagen desde dispositivo
+document.getElementById('uploadBtn').onclick = () => {
+  document.getElementById('uploadInput').click();
+};
 
-    const formData = new FormData();
-    formData.append('image', selectedImageFile);
+document.getElementById('uploadInput').onchange = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    capturedBlob = file;
+    showPreview(file);
+  }
+};
 
-    document.getElementById('submitBtn').disabled = true;
-    document.getElementById('message').innerText = 'Procesando imagen...';
+// Cambiar entre cámaras
+document.getElementById('flipBtn').onclick = () => {
+  usingFrontCamera = !usingFrontCamera;
+  startCamera();
+};
 
-    fetch('https://glaucoma-ntk9.onrender.com/predict', {
-        method: 'POST',
-        body: formData
-    })
-    .then(async response => {
-        const data = await response.json();
+// Confirmar y enviar al backend
+confirmBtn.onclick = async () => {
+  if (!capturedBlob) return;
 
-        if (!response.ok || data.error) {
-            document.getElementById('message').innerText = '❌ ' + (data.error || 'Error al analizar la imagen.');
-            resetPreview();
-            return;
-        }
+  resultText.textContent = 'Analizando...';
 
-        const pred = data.prediction;
-        const prob = (data.confidence * 100).toFixed(2);
+  const formData = new FormData();
+  formData.append('image', capturedBlob);
 
-        document.getElementById('message').innerHTML = `✅ <strong>Resultado:</strong> ${pred}<br><strong>Confianza:</strong> ${prob}%`;
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('message').innerText = '❌ Error al procesar la imagen.';
-    })
-    .finally(() => {
-        document.getElementById('submitBtn').disabled = false;
+  try {
+    const response = await fetch('https://render-backend-url.com/predict', {
+      method: 'POST',
+      body: formData
     });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      resultText.textContent = `${data.prediction} (Confianza: ${(data.confidence * 100).toFixed(1)}%)`;
+    } else {
+      resultText.textContent = data.error || 'Error al analizar imagen';
+    }
+  } catch (error) {
+    resultText.textContent = 'Fallo en el envío al servidor';
+    console.error(error);
+  }
+
+  document.getElementById('previewSection').style.display = 'none';
+};
+
+// Cancelar envío
+cancelBtn.onclick = reset;
+document.getElementById('resetBtn').onclick = reset;
+
+// Activar cámara
+async function startCamera() {
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+  }
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: usingFrontCamera ? 'user' : 'environment'
+      }
+    });
+
+    video.srcObject = stream;
+  } catch (err) {
+    alert('No se pudo acceder a la cámara');
+  }
 }
 
-// Función auxiliar para reiniciar previsualización
-function resetPreview() {
-    selectedImageFile = null;
-    document.getElementById('imageInput').value = '';
-    document.getElementById('imagePreview').src = '';
-    document.getElementById('imagePreviewContainer').style.display = 'none';
-    document.getElementById('submitBtn').disabled = true;
-}
+document.getElementById('cameraBtn').onclick = startCamera;

@@ -1,50 +1,44 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 body {
   font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  background: #f0f4f8;
+  margin: 0;
+  padding: 0;
+  text-align: center;
 }
 
 .container {
-  text-align: center;
+  max-width: 480px;
+  margin: auto;
   padding: 20px;
-  background-color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 600px;
 }
 
-.upload-container input, .upload-container button {
-  margin: 10px 0;
+h1 {
+  color: #0077b6;
+}
+
+.buttons button {
+  font-size: 24px;
+  margin: 5px;
   padding: 10px;
-  font-size: 16px;
   cursor: pointer;
 }
 
-.preview-container {
-  display: none;
-  margin-top: 20px;
-}
-
-.preview-container img {
+video, #previewImage {
+  width: 100%;
   max-width: 100%;
-  height: auto;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
 }
 
-#message {
-  margin-top: 20px;
-  color: red;
+.actions {
+  margin-top: 10px;
 }
 
-button[disabled] {
-  background-color: gray;
-  cursor: not-allowed;
+#resultSection {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
 }
