@@ -3,68 +3,76 @@ from flask_cors import CORS
 from PIL import Image
 import numpy as np
 import tensorflow as tf
-import requests
-import io
 import os
+import requests
+from io import BytesIO
+from tensorflow.keras.applications.mobilenet import preprocess_input
+from tensorflow.keras.models import load_model
 
 app = Flask(__name__)
-CORS(app, resources={r"/predict": {"origins": "https://glaucomate.netlify.app"}})
+CORS(app, resources={r"/*": {"origins": "https://glaucomate.netlify.app"}})
 
-# Cargar modelos desde Hugging Face
-nervio_optico_model_url = 'https://huggingface.co/Glaucomate/Modelo-glaucoma/blob/main/nervio_optico_modelo_mobilenet.h5'
-glaucoma_model_url = 'https://huggingface.co/Glaucomate/Modelo-glaucoma/blob/main/modelo_clasificacion_glaucoma_mejorado.h5'
+IMG_SIZE = 128
 
-# Función para cargar modelos desde Hugging Face
-def load_model_from_huggingface(model_url):
-    model_file = requests.get(model_url).content
-    model = tf.keras.models.load_model(io.BytesIO(model_file))
-    return model
+# URLs directos (RAW) de Hugging Face
+NERVIO_MODEL_URL = "https://huggingface.co/Glaucomate/Modelo-glaucoma/resolve/main/nervio_optico_modelo_mobilenet.h5"
+GLAUCOMA_MODEL_URL = "https://huggingface.co/Glaucomate/Modelo-glaucoma/resolve/main/modelo_clasificacion_glaucoma_mejorado.h5"
 
-nervio_optico_model = load_model_from_huggingface(nervio_optico_model_url)
-glaucoma_model = load_model_from_huggingface(glaucoma_model_url)
+# Cargar modelos desde Hugging Face (una sola vez)
+def download_model(url, filename):
+    if not os.path.exists(filename):
+        response = requests.get(url)
+        with open(filename, "wb") as f:
+            f.write(response.content)
 
-IMG_SIZE = 224  # Tamaño de imagen adecuado para MobileNet
+download_model(NERVIO_MODEL_URL, "modelo_nervio.h5")
+download_model(GLAUCOMA_MODEL_URL, "modelo_glaucoma.h5")
+
+modelo_nervio = load_model("modelo_nervio.h5")
+modelo_glaucoma = load_model("modelo_glaucoma.h5")
+
+
+def preprocess_image(file):
+    try:
+        image = Image.open(file).convert("RGB")
+        image = image.resize((IMG_SIZE, IMG_SIZE))
+        array = np.expand_dims(preprocess_input(np.array(image)), axis=0)
+        return array
+    except Exception as e:
+        raise ValueError(f"Error procesando imagen: {e}")
+
+@app.route('/')
+def home():
+    return "API operativa para detección de glaucoma y validación de nervio óptico."
+
+@app.route('/predict_nervio', methods=['POST'])
+def predict_nervio():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No se proporcionó ninguna imagen.'}), 400
+
+    try:
+        img_array = preprocess_image(request.files['image'])
+        prediction = modelo_nervio.predict(img_array)[0]
+        label = 'Nervio' if np.argmax(prediction) == 0 else 'No Nervio'
+        confidence = float(np.max(prediction))
+        return jsonify({'prediction': label, 'confidence': confidence})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/predict', methods=['POST'])
-def predict():
+def predict_glaucoma():
     if 'image' not in request.files:
-        return jsonify({'error': 'No se encontró imagen.'}), 400
-    
-    file = request.files['image']
+        return jsonify({'error': 'No se proporcionó ninguna imagen.'}), 400
+
     try:
-        # Procesar la imagen y convertirla
-        img = Image.open(file).convert("RGB").resize((IMG_SIZE, IMG_SIZE))
-        img_array = np.array(img) / 255.0
-        img_array = np.expand_dims(img_array, axis=0)  # Añadir dimensión de batch
+        img_array = preprocess_image(request.files['image'])
+        prediction = modelo_glaucoma.predict(img_array)[0]
+        label = 'Normal' if np.argmax(prediction) == 0 else 'Sospecha de Glaucoma'
+        confidence = float(np.max(prediction))
+        return jsonify({'prediction': label, 'confidence': confidence})
     except Exception as e:
-        return jsonify({'error': f'Error al procesar la imagen: {str(e)}'}), 500
-
-    # Verificar si es un nervio óptico
-    nervio_optico_prediction = nervio_optico_model.predict(img_array)
-    nervio_optico_detectado = nervio_optico_prediction[0][0] > 0.5  # Umbral de detección
-
-    if not nervio_optico_detectado:
-        return jsonify({'nervio_optico': 'No detectado', 'glaucoma': '', 'probabilidad_glaucoma': 0.0})
-
-    # Si se detecta un nervio óptico, predecir glaucoma
-    glaucoma_prediction = glaucoma_model.predict(img_array)
-    probabilidad_glaucoma = glaucoma_prediction[0][0]
-
-    if probabilidad_glaucoma > 0.5:
-        glaucoma_result = 'Sospecha de glaucoma'
-    else:
-        glaucoma_result = 'Sin sospecha de glaucoma'
-
-    return jsonify({
-        'nervio_optico': 'Detectado',
-        'glaucoma': glaucoma_result,
-        'probabilidad_glaucoma': probabilidad_glaucoma
-    })
-
-@app.route('/', methods=['GET'])
-def home():
-    return "API de detección de glaucoma operativa."
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 10000))
-    app.run(host='0.0.0.0', port=port)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)

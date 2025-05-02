@@ -1,96 +1,80 @@
-let currentStream;
-let usingFrontCamera = false;
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const preview = document.getElementById('preview');
-const fileInput = document.getElementById('fileInput');
-const confirmSection = document.getElementById('confirmSection');
-const resultDiv = document.getElementById('result');
-const loading = document.getElementById('loading');
+const imageInput = document.getElementById("imageInput");
+const imagePreview = document.getElementById("imagePreview");
+const previewContainer = document.getElementById("previewContainer");
+const confirmButton = document.getElementById("confirmButton");
+const cancelButton = document.getElementById("cancelButton");
+const resultContainer = document.getElementById("resultContainer");
+const predictionText = document.getElementById("predictionText");
+const resetButton = document.getElementById("resetButton");
 
-async function startCamera() {
-  if (currentStream) {
-    currentStream.getTracks().forEach(track => track.stop());
-  }
+let selectedFile = null;
 
-  try {
-    currentStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: usingFrontCamera ? 'user' : 'environment' },
-      audio: false
-    });
-    video.srcObject = currentStream;
-  } catch (e) {
-    alert('No se pudo acceder a la cámara.');
-  }
-}
+imageInput.addEventListener("change", (e) => {
+  selectedFile = e.target.files[0];
+  if (!selectedFile) return;
 
-document.getElementById('flipBtn').addEventListener('click', () => {
-  usingFrontCamera = !usingFrontCamera;
-  startCamera();
+  const reader = new FileReader();
+  reader.onload = function (event) {
+    imagePreview.src = event.target.result;
+    previewContainer.style.display = "flex";
+  };
+  reader.readAsDataURL(selectedFile);
 });
 
-document.getElementById('captureBtn').addEventListener('click', () => {
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-  showPreview(canvas.toDataURL());
+cancelButton.addEventListener("click", () => {
+  previewContainer.style.display = "none";
+  imageInput.value = "";
+  selectedFile = null;
 });
 
-document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
+confirmButton.addEventListener("click", async () => {
+  if (!selectedFile) return;
 
-fileInput.addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = ev => showPreview(ev.target.result);
-    reader.readAsDataURL(file);
-  }
-});
-
-function showPreview(dataUrl) {
-  video.classList.add('hidden');
-  preview.src = dataUrl;
-  preview.classList.remove('hidden');
-  confirmSection.classList.remove('hidden');
-  resultDiv.classList.add('hidden');
-}
-
-document.getElementById('cancelBtn').addEventListener('click', () => {
-  preview.classList.add('hidden');
-  video.classList.remove('hidden');
-  confirmSection.classList.add('hidden');
-});
-
-document.getElementById('confirmBtn').addEventListener('click', async () => {
-  loading.classList.remove('hidden');
-  confirmSection.classList.add('hidden');
-
-  const blob = await fetch(preview.src).then(res => res.blob());
   const formData = new FormData();
-  formData.append('image', blob, 'image.jpg');
+  formData.append("image", selectedFile);
+
+  predictionText.innerText = "Analizando imagen...";
+  resultContainer.classList.remove("hidden");
 
   try {
-    const nervioResponse = await fetch('https://<tu-backend>.onrender.com/validate', { method: 'POST', body: formData });
-    const nervioResult = await nervioResponse.json();
+    // Paso 1: Validar si es imagen de nervio
+    const nervioRes = await fetch("https://tubackend.onrender.com/predict_nervio", {
+      method: "POST",
+      body: formData,
+    });
 
-    if (!nervioResult.valid) {
-      loading.classList.add('hidden');
-      resultDiv.textContent = 'Imagen no válida. Por favor, sube un nervio óptico.';
-      resultDiv.classList.remove('hidden');
+    const nervioData = await nervioRes.json();
+
+    if (!nervioRes.ok || nervioData.prediction !== "Nervio") {
+      predictionText.innerText = "La imagen no parece ser de un nervio óptico. Intenta con otra.";
       return;
     }
 
-    const glaucomaResponse = await fetch('https://<tu-backend>.onrender.com/predict', { method: 'POST', body: formData });
-    const glaucomaResult = await glaucomaResponse.json();
+    // Paso 2: Si es válida, enviar al modelo de glaucoma
+    const glaucomaRes = await fetch("https://tubackend.onrender.com/predict", {
+      method: "POST",
+      body: formData,
+    });
 
-    loading.classList.add('hidden');
-    resultDiv.innerHTML = `Resultado: ${glaucomaResult.prediction}<br>Confianza: ${(glaucomaResult.confidence * 100).toFixed(2)}%`;
-    resultDiv.classList.remove('hidden');
-  } catch (e) {
-    loading.classList.add('hidden');
-    resultDiv.textContent = 'Error al analizar la imagen.';
-    resultDiv.classList.remove('hidden');
+    const result = await glaucomaRes.json();
+
+    if (!glaucomaRes.ok) {
+      predictionText.innerText = "Error en la predicción de glaucoma.";
+      return;
+    }
+
+    // Mostrar predicción más probable
+    predictionText.innerText = `Diagnóstico: ${result.prediction} (Confianza: ${(result.confidence * 100).toFixed(1)}%)`;
+
+  } catch (error) {
+    predictionText.innerText = "Error al procesar la imagen.";
+    console.error(error);
   }
 });
 
-startCamera();
+resetButton.addEventListener("click", () => {
+  resultContainer.classList.add("hidden");
+  previewContainer.style.display = "none";
+  imageInput.value = "";
+  selectedFile = null;
+});

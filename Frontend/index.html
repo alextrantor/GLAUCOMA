@@ -2,36 +2,39 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Glaucomate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Detección de Glaucoma</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.ico">
 </head>
 <body>
-  <main class="container">
+  <header>
     <h1>Glaucomate</h1>
-    <div class="upload-section">
-      <video id="video" autoplay playsinline></video>
-      <canvas id="canvas" class="hidden"></canvas>
-      <img id="preview" class="hidden" />
-      <div class="controls">
-        <button id="flipBtn" title="Cambiar cámara">🔄</button>
-        <button id="captureBtn" title="Capturar">📸</button>
-        <button id="uploadBtn" title="Subir imagen">📁</button>
-        <input type="file" id="fileInput" accept="image/*" class="hidden" />
+    <p>Analiza imágenes del nervio óptico para detectar posible glaucoma</p>
+  </header>
+
+  <main>
+    <div class="upload-container">
+      <input type="file" id="imageInput" accept="image/*" />
+      <div id="previewContainer">
+        <img id="imagePreview" alt="Vista previa" />
+        <div class="action-buttons">
+          <button id="confirmButton">Confirmar</button>
+          <button id="cancelButton">Cancelar</button>
+        </div>
       </div>
     </div>
 
-    <div id="confirmSection" class="hidden">
-      <p>¿Confirmar esta imagen para análisis?</p>
-      <button id="confirmBtn">✅ Confirmar</button>
-      <button id="cancelBtn">❌ Cancelar</button>
+    <div id="resultContainer" class="hidden">
+      <h2>Resultado:</h2>
+      <p id="predictionText"></p>
+      <button id="resetButton">Nuevo análisis</button>
     </div>
-
-    <div id="result" class="hidden"></div>
-    <div id="loading" class="hidden">Analizando imagen...</div>
   </main>
+
+  <footer>
+    <p>&copy; 2025 Glaucomate - IA para salud visual</p>
+  </footer>
 
   <script src="script.js"></script>
 </body>
