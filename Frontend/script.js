@@ -1,130 +1,112 @@
-let video = document.querySelector("#video");
-let captureBtn = document.querySelector("#captureBtn");
-let uploadInput = document.querySelector("#uploadInput");
-let previewContainer = document.querySelector("#previewContainer");
-let confirmBtn = document.querySelector("#confirmBtn");
-let cancelBtn = document.querySelector("#cancelBtn");
-let resultContainer = document.querySelector("#resultContainer");
-let resultText = document.querySelector("#resultText");
-let resetBtn = document.querySelector("#resetBtn");
-let selectedImageBlob = null;
-let stream = null;
-let usingBackCamera = true;
+// Variables globales
+let selectedImage = null;
+let videoStream = null;
+const videoElement = document.getElementById('video');
+const previewContainer = document.getElementById('previewContainer');
+const confirmBtn = document.getElementById('confirmBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const resetBtn = document.getElementById('resetBtn');
+const resultContainer = document.getElementById('resultContainer');
+const resultText = document.getElementById('resultText');
 
+// Configuración del video
 async function setupCamera() {
     try {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
-
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === "videoinput");
-        const constraints = {
-            video: {
-                facingMode: usingBackCamera ? "environment" : "user"
-            }
-        };
-
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-        video.srcObject = stream;
-        await video.play();
-    } catch (err) {
-        alert("No se pudo acceder a la cámara.");
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        videoElement.srcObject = stream;
+        videoStream = stream;
+    } catch (error) {
+        console.error("Error al acceder a la cámara:", error);
     }
 }
 
-captureBtn.addEventListener("click", async () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 224;
-    canvas.height = 224;
-    const context = canvas.getContext("2d");
-    context.drawImage(video, 0, 0, 224, 224);
-    canvas.toBlob(blob => {
-        selectedImageBlob = blob;
-        showPreview(blob);
-    }, "image/jpeg");
+setupCamera();
+
+// Captura de imagen
+document.getElementById('captureBtn').addEventListener('click', async () => {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.width = videoElement.videoWidth;
+    canvas.height = videoElement.videoHeight;
+    context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+    selectedImage = canvas.toDataURL('image/jpeg');
+    const imgElement = document.createElement('img');
+    imgElement.src = selectedImage;
+    previewContainer.innerHTML = '';
+    previewContainer.appendChild(imgElement);
+
+    // Mostrar botones de confirmación
+    confirmBtn.style.display = 'inline-block';
+    cancelBtn.style.display = 'inline-block';
 });
 
-uploadInput.addEventListener("change", event => {
-    const file = event.target.files[0];
-    if (file) {
-        selectedImageBlob = file;
-        showPreview(file);
-    }
+// Cancelar la captura
+cancelBtn.addEventListener('click', () => {
+    previewContainer.innerHTML = '';
+    confirmBtn.style.display = 'none';
+    cancelBtn.style.display = 'none';
 });
 
-function showPreview(blob) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        const img = new Image();
-        img.src = e.target.result;
-        img.className = "preview-image";
-        previewContainer.innerHTML = "";
-        previewContainer.appendChild(img);
-        confirmBtn.style.display = "inline-block";
-        cancelBtn.style.display = "inline-block";
-    };
-    reader.readAsDataURL(blob);
-}
-
-confirmBtn.addEventListener("click", () => {
-    if (selectedImageBlob) {
-        sendImage(selectedImageBlob);
-    }
+// Confirmar la captura y enviar la imagen para validación
+confirmBtn.addEventListener('click', () => {
+    validateImage(selectedImage);
+    confirmBtn.style.display = 'none';
+    cancelBtn.style.display = 'none';
 });
 
-cancelBtn.addEventListener("click", () => {
-    selectedImageBlob = null;
-    previewContainer.innerHTML = "";
-    confirmBtn.style.display = "none";
-    cancelBtn.style.display = "none";
-    resultContainer.style.display = "none";
+// Reiniciar la interfaz
+resetBtn.addEventListener('click', () => {
+    previewContainer.innerHTML = '';
+    resultContainer.style.display = 'none';
+    document.getElementById('uploadInput').style.display = 'inline-block';
+    document.getElementById('captureBtn').style.display = 'inline-block';
 });
 
-resetBtn.addEventListener("click", () => {
-    window.location.reload();
-});
-
-async function sendImage(imageBlob) {
-    resultText.textContent = "Analizando imagen...";
-    resultContainer.style.display = "block";
-
-    const formData = new FormData();
-    formData.append("image", imageBlob);
-
+// Enviar la imagen al backend para validación
+async function validateImage(imageData) {
     try {
-        // Paso 1: Validar si es un nervio óptico
-        const response1 = await fetch("https://glaucoma-ntk9.onrender.com/validate", {
-            method: "POST",
+        const formData = new FormData();
+        const imageBlob = dataURLToBlob(imageData);
+        formData.append('image', imageBlob, 'image.jpg');
+
+        const response = await fetch('https://tu-backend-url/predict', {
+            method: 'POST',
             body: formData
         });
 
-        const result1 = await response1.json();
+        const result = await response.json();
 
-        if (response1.status !== 200 || !result1.valid) {
-            resultText.textContent = "La imagen no corresponde a un nervio óptico. Por favor, intenta con otra.";
+        if (result.error) {
+            resultText.innerHTML = `Error: ${result.error}`;
+            resultContainer.style.display = 'block';
             return;
         }
 
-        // Paso 2: Enviar al modelo de glaucoma
-        const response2 = await fetch("https://glaucoma-ntk9.onrender.coms/predict", {
-            method: "POST",
-            body: formData
-        });
-
-        const result2 = await response2.json();
-
-        if (response2.status !== 200) {
-            throw new Error(result2.error || "Error al procesar la imagen");
+        if (result.prediction === 'Normal') {
+            resultText.innerHTML = `Predicción: Normal (Confianza: ${result.confidence.toFixed(2)})`;
+        } else {
+            resultText.innerHTML = `Predicción: Sospecha de Glaucoma (Confianza: ${result.confidence.toFixed(2)})`;
         }
 
-        resultText.textContent = `${result2.prediction} (Confianza: ${(result2.confidence * 100).toFixed(1)}%)`;
-
+        resultContainer.style.display = 'block';
     } catch (error) {
-        resultText.textContent = `Error: ${error.message}`;
+        resultText.innerHTML = `Error al procesar la imagen: ${error.message}`;
+        resultContainer.style.display = 'block';
     }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    setupCamera();
-});
+// Función para convertir la imagen base64 a Blob
+function dataURLToBlob(dataUrl) {
+    const [header, base64Data] = dataUrl.split(',');
+    const mime = header.split(':')[1].split(';')[0];
+    const byteString = atob(base64Data);
+    const arrayBuffer = new ArrayBuffer(byteString.length);
+    const uintArray = new Uint8Array(arrayBuffer);
+
+    for (let i = 0; i < byteString.length; i++) {
+        uintArray[i] = byteString.charCodeAt(i);
+    }
+
+    return new Blob([uintArray], { type: mime });
+}

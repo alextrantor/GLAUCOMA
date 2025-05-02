@@ -1,41 +1,34 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Detección de Glaucoma</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detección de Glaucoma</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h1>Glaucomate</h1>
-    <p>Analiza imágenes del nervio óptico para detectar posible glaucoma</p>
-  </header>
+    <div class="container">
+        <h1>Detección de Glaucoma</h1>
 
-  <main>
-    <div class="upload-container">
-      <input type="file" id="imageInput" accept="image/*" />
-      <div id="previewContainer">
-        <img id="imagePreview" alt="Vista previa" />
-        <div class="action-buttons">
-          <button id="confirmButton">Confirmar</button>
-          <button id="cancelButton">Cancelar</button>
+        <div class="camera-container">
+            <video id="video" width="100%" autoplay></video>
+            <button id="captureBtn">Capturar Imagen</button>
         </div>
+
+        <div class="upload-container">
+            <input type="file" id="uploadInput" accept="image/*">
+        </div>
+
+        <div id="previewContainer" class="preview-container"></div>
+
+        <div class="confirmation-buttons">
+            <button id="confirmBtn" style="display:none;">Confirmar</button>
+            <button id="resetBtn">Reiniciar</button>
+          </div>
+  
       </div>
-    </div>
-
-    <div id="resultContainer" class="hidden">
-      <h2>Resultado:</h2>
-      <p id="predictionText"></p>
-      <button id="resetButton">Nuevo análisis</button>
-    </div>
-  </main>
-
-  <footer>
-    <p>&copy; 2025 Glaucomate - IA para salud visual</p>
-  </footer>
-
-  <script src="script.js"></script>
-</body>
-</html>
+      
+      <script src="script.js"></script>
+  </body>
+  </html>
+  

@@ -1,93 +1,106 @@
-* {
-  box-sizing: border-box;
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
   margin: 0;
-  padding: 0;
 }
 
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #f4f6f8;
-  color: #333;
+.container {
   text-align: center;
   padding: 20px;
-}
-
-header {
-  margin-bottom: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 80%;
+  max-width: 600px;
 }
 
 h1 {
-  font-size: 2rem;
-  color: #2c3e50;
+  color: #333;
 }
 
-main {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.upload-container {
+.camera-container {
   margin-bottom: 20px;
 }
 
-#imageInput {
-  margin-bottom: 15px;
-}
-
-#previewContainer {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-}
-
-#imagePreview {
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-button {
-  padding: 10px 15px;
-  border: none;
-  background-color: #3498db;
+#captureBtn {
+  margin-top: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #007bff;
   color: white;
+  border: none;
   border-radius: 5px;
   cursor: pointer;
 }
 
-button:hover {
-  background-color: #2980b9;
+#captureBtn:hover {
+  background-color: #0056b3;
 }
 
-#resultContainer.hidden {
-  display: none;
+.upload-container {
+  margin-top: 20px;
 }
 
-footer {
-  margin-top: 40px;
-  font-size: 0.8rem;
-  color: #888;
+#uploadInput {
+  padding: 10px;
+  font-size: 16px;
 }
 
-/* Responsive */
+.preview-container {
+  margin-top: 20px;
+}
+
+.preview-container img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+.confirmation-buttons {
+  margin-top: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 10px;
+}
+
+#confirmBtn {
+  background-color: #28a745;
+  color: white;
+}
+
+#cancelBtn {
+  background-color: #dc3545;
+  color: white;
+}
+
+#resultContainer {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#resetBtn {
+  background-color: #ffc107;
+  color: black;
+}
+
+#resetBtn:hover, #confirmBtn:hover, #cancelBtn:hover {
+  opacity: 0.8;
+}
+
 @media (max-width: 600px) {
-  h1 {
-    font-size: 1.5rem;
-  }
-
-  button {
-    width: 100%;
-  }
-
-  .action-buttons {
-    flex-direction: column;
-    width: 100%;
+  .container {
+      width: 95%;
   }
 }
