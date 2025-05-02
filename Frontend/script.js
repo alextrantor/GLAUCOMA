@@ -33,8 +33,10 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
     selectedImage = canvas.toDataURL('image/jpeg');
     const imgElement = document.createElement('img');
     imgElement.src = selectedImage;
-    previewContainer.innerHTML = '';
-    previewContainer.appendChild(imgElement);
+    imgElement.classList.add('captured-image');  // Añadido para estilo
+
+    previewContainer.innerHTML = ''; // Limpiar contenido previo
+    previewContainer.appendChild(imgElement); // Agregar imagen capturada
 
     // Mostrar botones de confirmación
     confirmBtn.style.display = 'inline-block';
@@ -43,7 +45,7 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
 
 // Cancelar la captura
 cancelBtn.addEventListener('click', () => {
-    previewContainer.innerHTML = '';
+    previewContainer.innerHTML = '';  // Limpiar imagen
     confirmBtn.style.display = 'none';
     cancelBtn.style.display = 'none';
 });
@@ -70,7 +72,7 @@ async function validateImage(imageData) {
         const imageBlob = dataURLToBlob(imageData);
         formData.append('image', imageBlob, 'image.jpg');
 
-        const response = await fetch('https://tu-backend-url/predict', {
+        const response = await fetch('https://glaucoma-ntk9.onrender.com/predict', {
             method: 'POST',
             body: formData
         });
@@ -109,4 +111,12 @@ function dataURLToBlob(dataUrl) {
     }
 
     return new Blob([uintArray], { type: mime });
+}
+
+.captured-image {
+    max-width: 100%;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
 }
