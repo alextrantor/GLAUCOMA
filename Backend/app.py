@@ -4,8 +4,10 @@ import numpy as np
 from PIL import Image
 import os
 import requests
+from flask_cors import CORS  # Importa la librería Flask-CORS
 
 app = Flask(__name__)
+CORS(app, resources={r"/predict": {"origins": "https://glaucomate.netlify.app"}})  # Habilita CORS para la ruta /predict y el origen de tu frontend
 
 # URLs de Hugging Face
 NERVIO_URL = "https://huggingface.co/Glaucomate/Modelo-glaucoma/resolve/main/nervio_optico_modelo_mobilenet.h5"
