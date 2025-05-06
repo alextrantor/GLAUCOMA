@@ -1,67 +1,35 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detección de Glaucoma</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glaucomate - Detección de Glaucoma</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="container">
-        <h1>Detección de Glaucoma</h1>
-        <div class="upload-section">
-            <input type="file" id="imageUpload" accept="image/*" />
-            <button onclick="submitImage()">Enviar Imagen</button>
-        </div>
-        <div class="preview-section">
-            <img id="imagePreview" src="" alt="Vista previa de la imagen" />
-            <p id="predictionResult"></p>
-            <p id="predictionConfidence"></p>
-        </div>
+  <div class="container">
+    <h1>Glaucomate</h1>
+    <p class="subtitle">Análisis inteligente de nervio óptico para detección de glaucoma</p>
+
+    <div class="upload-area">
+      <input type="file" id="imageInput" accept="image/*" />
+      <button id="captureButton">Capturar Imagen</button>
+      <video id="video" autoplay playsinline></video>
+      <canvas id="canvas" style="display: none;"></canvas>
     </div>
 
-    <script>
-        async function submitImage() {
-            const fileInput = document.getElementById("imageUpload");
-            const imageFile = fileInput.files[0];
+    <div id="previewContainer">
+      <img id="preview" src="" alt="Vista previa" />
+      <div class="confirm-buttons">
+        <button id="confirmButton">Confirmar</button>
+        <button id="cancelButton">Cancelar</button>
+      </div>
+    </div>
 
-            if (!imageFile) {
-                alert("Por favor selecciona una imagen.");
-                return;
-            }
+    <div id="loading">Procesando...</div>
+    <div id="result"></div>
+  </div>
 
-            const formData = new FormData();
-            formData.append("image", imageFile);
-
-            // Mostrar la imagen de vista previa
-            const reader = new FileReader();
-            reader.onloadend = function () {
-                const preview = document.getElementById("imagePreview");
-                preview.src = reader.result;
-            }
-            reader.readAsDataURL(imageFile);
-
-            try {
-                const response = await fetch('https://glaucoma-ntk9.onrender.com/predict', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    const prediction = result.prediction;
-                    const confidence = result.confidence.toFixed(2);
-
-                    document.getElementById("predictionResult").innerText = `Predicción: ${prediction}`;
-                    document.getElementById("predictionConfidence").innerText = `Confianza: ${confidence}`;
-                } else {
-                    document.getElementById("predictionResult").innerText = `Error: ${result.error}`;
-                }
-            } catch (error) {
-                console.error("Error al procesar la imagen:", error);
-            }
-        }
-    </script>
+  <script src="script.js"></script>
 </body>
 </html>

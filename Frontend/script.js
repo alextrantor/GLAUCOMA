@@ -1,69 +1,102 @@
-// Elementos del DOM
-const fileInput = document.getElementById('fileInput');
-const takePhotoBtn = document.getElementById('takePhotoBtn');
-const previewImg = document.getElementById('previewImg');
-const imagePreview = document.getElementById('imagePreview');
-const confirmationSection = document.getElementById('confirmationSection');
-const confirmBtn = document.getElementById('confirmBtn');
-const retryBtn = document.getElementById('retryBtn');
-const results = document.getElementById('results');
-const predictionText = document.getElementById('prediction');
-const confidenceText = document.getElementById('confidence');
+const imageInput = document.getElementById('imageInput');
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const preview = document.getElementById('preview');
+const previewContainer = document.getElementById('previewContainer');
+const confirmButton = document.getElementById('confirmButton');
+const cancelButton = document.getElementById('cancelButton');
+const captureButton = document.getElementById('captureButton');
+const loading = document.getElementById('loading');
+const result = document.getElementById('result');
 
-// Variables
-let selectedImage = null;
+let imageToSend = null;
 
-// Capturar o seleccionar la imagen
-fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function () {
-            previewImg.src = reader.result;
-            imagePreview.style.display = 'block';
-            confirmationSection.style.display = 'block';
-            selectedImage = file;
-        };
-        reader.readAsDataURL(file);
-    }
+// Activar cámara
+captureButton.addEventListener('click', async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    video.srcObject = stream;
+    video.style.display = 'block';
+
+    captureButton.textContent = 'Tomar foto';
+    captureButton.onclick = () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+
+      imageToSend = dataURLToFile(canvas.toDataURL(), 'captura.jpg');
+      preview.src = canvas.toDataURL();
+      previewContainer.style.display = 'flex';
+      video.srcObject.getTracks().forEach(track => track.stop());
+      video.style.display = 'none';
+    };
+  } catch (err) {
+    alert('No se pudo acceder a la cámara');
+  }
 });
 
-// Tomar foto con la cámara (utilizar una librería como WebRTC si se necesita)
-takePhotoBtn.addEventListener('click', () => {
-    alert("Funcionalidad de cámara aún no implementada.");
+// Cargar imagen
+imageInput.addEventListener('change', () => {
+  const file = imageInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    preview.src = reader.result;
+    previewContainer.style.display = 'flex';
+    imageToSend = file;
+  };
+  reader.readAsDataURL(file);
 });
 
-// Confirmar y enviar la imagen
-confirmBtn.addEventListener('click', () => {
-    const formData = new FormData();
-    formData.append('image', selectedImage);
+// Cancelar imagen
+cancelButton.addEventListener('click', () => {
+  previewContainer.style.display = 'none';
+  imageToSend = null;
+});
 
-    // Enviar la imagen al backend
-    fetch('https://glaucoma-ntk9.onrender.com/predict', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            predictionText.textContent = data.error;
-        } else {
-            predictionText.textContent = `Predicción: ${data.prediction}`;
-            confidenceText.textContent = `Confianza: ${data.confidence.toFixed(2)}`;
-        }
-        results.style.display = 'block';
-    })
-    .catch(err => {
-        predictionText.textContent = 'Error al procesar la imagen.';
-        confidenceText.textContent = '';
-        results.style.display = 'block';
+// Confirmar imagen y enviar
+confirmButton.addEventListener('click', async () => {
+  if (!imageToSend) return;
+
+  loading.style.display = 'block';
+  result.textContent = '';
+
+  const formData = new FormData();
+  formData.append('image', imageToSend);
+
+  try {
+    const response = await fetch('https://glaucoma-ntk9.onrender.com/predict', {
+      method: 'POST',
+      body: formData,
     });
+
+    const data = await response.json();
+    loading.style.display = 'none';
+
+    if (data.error) {
+      result.textContent = `⚠️ ${data.error}`;
+      result.style.color = '#b03838';
+    } else {
+      result.textContent = `🧠 Resultado: ${data.prediction} (${(data.confidence * 100).toFixed(1)}%)`;
+      result.style.color = data.prediction === 'Sospecha de Glaucoma' ? '#b03838' : '#2c77b0';
+    }
+
+    previewContainer.style.display = 'none';
+    imageToSend = null;
+  } catch (error) {
+    loading.style.display = 'none';
+    result.textContent = '❌ Error al procesar la imagen.';
+    result.style.color = '#b03838';
+  }
 });
 
-// Reintentar
-retryBtn.addEventListener('click', () => {
-    fileInput.value = '';
-    imagePreview.style.display = 'none';
-    confirmationSection.style.display = 'none';
-    results.style.display = 'none';
-});
+function dataURLToFile(dataUrl, filename) {
+  const arr = dataUrl.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) u8arr[n] = bstr.charCodeAt(n);
+  return new File([u8arr], filename, { type: mime });
+}

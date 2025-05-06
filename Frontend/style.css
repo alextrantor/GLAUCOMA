@@ -1,90 +1,77 @@
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f8f9fa;
   margin: 0;
-  padding: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: #f8f5f0;
+  color: #1a1a1a;
 }
 
 .container {
-  max-width: 800px;
-  margin: 30px auto;
-  padding: 20px;
+  max-width: 600px;
+  margin: auto;
+  padding: 1rem;
   text-align: center;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
-  font-size: 24px;
-  margin-bottom: 20px;
+  color: #2c77b0;
+  margin-bottom: 0.2rem;
 }
 
-.upload-section {
-  margin-bottom: 20px;
+.subtitle {
+  color: #6b6b6b;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
 }
 
-#fileInput {
-  padding: 10px;
-  border-radius: 5px;
+.upload-area {
+  margin-bottom: 1rem;
 }
 
-#takePhotoBtn {
-  padding: 10px 20px;
-  margin-top: 10px;
-  border-radius: 5px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-}
-
-#takePhotoBtn:hover {
-  background-color: #0056b3;
-}
-
-.image-preview {
-  display: none;
-  margin-top: 20px;
-  text-align: center;
-}
-
-#previewImg {
+#video {
   width: 100%;
-  max-width: 400px;
-  margin: 20px 0;
-}
-
-.confirmation-section {
+  border-radius: 8px;
   display: none;
-  margin-top: 20px;
 }
 
-.button {
-  padding: 10px 20px;
-  margin: 10px;
-  border-radius: 5px;
-  background-color: #28a745;
-  color: #fff;
+#previewContainer {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+}
+
+#preview {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+button {
+  padding: 0.6rem 1.2rem;
+  background: #2c77b0;
+  color: white;
   border: none;
+  border-radius: 6px;
   cursor: pointer;
 }
 
-.button:hover {
-  background-color: #218838;
+button:hover {
+  background: #1d5a87;
 }
 
-.results {
+#loading {
   display: none;
-  margin-top: 20px;
-  text-align: center;
-}
-
-.results h2 {
-  font-size: 22px;
-}
-
-.results p {
-  font-size: 18px;
+  margin-top: 1rem;
+  color: #2c77b0;
   font-weight: bold;
+}
+
+#result {
+  margin-top: 1rem;
+  font-size: 1.1rem;
 }
