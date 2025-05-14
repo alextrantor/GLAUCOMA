@@ -1,35 +1,12 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Glaucomate - Detección de Glaucoma</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glaucoma Screening</title>
 </head>
 <body>
-  <div class="container">
-    <h1>Glaucomate</h1>
-    <p class="subtitle">Análisis inteligente de nervio óptico para detección de glaucoma</p>
-
-    <div class="upload-area">
-      <input type="file" id="imageInput" accept="image/*" />
-      <button id="captureButton">Capturar Imagen</button>
-      <video id="video" autoplay playsinline></video>
-      <canvas id="canvas" style="display: none;"></canvas>
-    </div>
-
-    <div id="previewContainer">
-      <img id="preview" src="" alt="Vista previa" />
-      <div class="confirm-buttons">
-        <button id="confirmButton">Confirmar</button>
-        <button id="cancelButton">Cancelar</button>
-      </div>
-    </div>
-
-    <div id="loading">Procesando...</div>
-    <div id="result"></div>
-  </div>
-
-  <script src="script.js"></script>
+    <div id="root"></div>
+    <script src="../src/index.js"></script>
 </body>
 </html>
