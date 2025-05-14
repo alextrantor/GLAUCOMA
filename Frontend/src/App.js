@@ -6,10 +6,14 @@ import ResultsDisplay from './ResultsDisplay';
 
 function App() {
   const [selectedImageFile, setSelectedImageFile] = useState(null);
+  const [analysisResults, setAnalysisResults] = useState(null);
 
   const handleImageSelected = (file) => {
     setSelectedImageFile(file);
-    // Aquí podrías actualizar el componente ImageDisplay si lo deseas
+  };
+
+  const handleResultsReceived = (data) => {
+    setAnalysisResults(data);
   };
 
   return (
@@ -17,8 +21,8 @@ function App() {
       <h1>Glaucoma Screening Tool</h1>
       <ImageSelector onImageSelected={handleImageSelected} />
       <ImageDisplay imageFile={selectedImageFile} />
-      <AnalysisButton imageFile={selectedImageFile} />
-      <ResultsDisplay />
+      <AnalysisButton imageFile={selectedImageFile} onResults={handleResultsReceived} />
+      <ResultsDisplay results={analysisResults} />
     </div>
   );
 }
