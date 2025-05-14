@@ -1,8 +1,6 @@
-flask
-gunicorn
+fastapi
+uvicorn
 tensorflow
 pillow
-numpy
-flask-cors
-huggingface_hub
-requests
+pyton-multipart
+fastapi-cors
