@@ -4,3 +4,4 @@ tensorflow
 pillow
 pyton-multipart
 fastapi-cors
+huggingface-hub
