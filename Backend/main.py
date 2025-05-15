@@ -1,4 +1,6 @@
 import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # Evita uso de GPU en entornos sin soporte CUDA
+
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
@@ -7,11 +9,12 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 from io import BytesIO
 from huggingface_hub import hf_hub_download
+import traceback
 
 app = FastAPI()
 
-# CORS middleware to allow requests from your Netlify frontend
-origins = ["*"]  # Adjust this to your Netlify URL in a production environment
+# CORS middleware para permitir peticiones desde tu frontend (ajusta en producción)
+origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -20,14 +23,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Define image size (should match your model's input size)
+# Tamaño de entrada de las imágenes
 IMG_SIZE = (224, 224)
 
-# Path to your saved models on Hugging Face
+# Repositorio y modelos en Hugging Face
 HUGGINGFACE_REPO_ID = "Glaucomate/Modelo-glaucoma"
 NERVIO_MODEL_FILENAME = "modelo_deteccion_nervio_universal.h5"
 CDR_MODEL_FILENAME = "modelo_regresion_cdr.h5"
-
 
 nerve_detection_model = None
 cdr_regression_model = None
@@ -49,12 +51,16 @@ async def startup_event():
             filename=CDR_MODEL_FILENAME,
             repo_type="model"
         )
-        cdr_regression_model = load_model(cdr_regression_model_path, custom_objects={'mse': tf.keras.losses.MeanSquaredError()})
+        cdr_regression_model = load_model(
+            cdr_regression_model_path,
+            custom_objects={'mse': tf.keras.losses.MeanSquaredError()}
+        )
 
-        print("Modelos cargados exitosamente desde Hugging Face.")
+        print("✅ Modelos cargados exitosamente desde Hugging Face.")
 
     except Exception as e:
-        print(f"Error al cargar los modelos desde Hugging Face: {e}")
+        print("❌ Error al cargar los modelos desde Hugging Face:")
+        traceback.print_exc()
 
 async def preprocess_image(file: UploadFile):
     try:
@@ -73,22 +79,23 @@ async def analyze_image(file: UploadFile = File(...)):
 
     image_array = await preprocess_image(file)
 
-    # 1. Detect nerve
+    # 1. Detección de nervio óptico
     nerve_probability = nerve_detection_model.predict(image_array)[0][0]
-    is_nerve = nerve_probability < 0.5  # Assuming low probability means it's a nerve
+    is_nerve = nerve_probability < 0.5  # Menor probabilidad indica presencia de nervio
 
-    results = {"is_nerve": is_nerve, "cdr_prediction": None, "glaucoma_suspected": None}
+    results = {
+        "is_nerve": is_nerve,
+        "cdr_prediction": None,
+        "glaucoma_suspected": None
+    }
 
     if is_nerve:
-        # 2. Predict CDR
+        # 2. Predicción de CDR
         cdr_prediction = cdr_regression_model.predict(image_array)[0][0]
         results["cdr_prediction"] = float(cdr_prediction)
 
-        # 3. Classify based on CDR threshold
+        # 3. Clasificación con base en umbral de CDR
         cdr_threshold = 0.5
         results["glaucoma_suspected"] = cdr_prediction > cdr_threshold
 
     return results
-
-import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
