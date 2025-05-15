@@ -2,6 +2,6 @@ fastapi
 uvicorn
 tensorflow
 pillow
-pyton-multipart
+python-multipart
 fastapi-cors
 huggingface-hub
