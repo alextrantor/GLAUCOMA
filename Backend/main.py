@@ -88,3 +88,6 @@ async def analyze_image(file: UploadFile = File(...)):
         results["glaucoma_suspected"] = cdr_prediction > cdr_threshold
 
     return results
+
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
