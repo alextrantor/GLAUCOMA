@@ -1,3 +1,4 @@
+import './App.css'; // Importa el archivo de estilos CSS
 import React, { useState } from 'react';
 import ImageSelector from './ImageSelector';
 import ImageDisplay from './ImageDisplay';
@@ -17,7 +18,7 @@ function App() {
   };
 
   return (
-    <div>
+    <div className="App"> {/* Añade una clase 'App' al contenedor principal para aplicar estilos */}
       <h1>Glaucoma Screening Tool</h1>
       <ImageSelector onImageSelected={handleImageSelected} />
       <ImageDisplay imageFile={selectedImageFile} />
