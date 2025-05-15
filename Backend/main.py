@@ -28,6 +28,7 @@ HUGGINGFACE_REPO_ID = "Glaucomate/Modelo-glaucoma"
 NERVIO_MODEL_FILENAME = "modelo_deteccion_nervio_universal.h5"
 CDR_MODEL_FILENAME = "modelo_regresion_cdr.h5"
 
+
 nerve_detection_model = None
 cdr_regression_model = None
 
