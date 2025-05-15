@@ -1,0 +1,11 @@
+services:
+    type: web
+    name: glaucoma-backend
+    env: python
+    region: oregon
+    buidCommand: pip install -r Backend/requirements.txt
+    startCommand: gunicorn -w 1 -k uvicorn.workers.UviconWorker Backend.main:app -- bind 0.0.0.0:8000
+    envVars: 
+      -key: PORT
+      value: 8000
+    autoDeploy: true
