@@ -18,7 +18,7 @@ function App() {
   };
 
   return (
-    <div className="App"> {Frontend/public/App.css}
+    <div className="App"> {/Frontend/public/App.css}
       <h1>Glaucoma Screening Tool</h1>
       <ImageSelector onImageSelected={handleImageSelected} />
       <ImageDisplay imageFile={selectedImageFile} />
