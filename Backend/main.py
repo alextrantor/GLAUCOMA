@@ -14,7 +14,7 @@ import traceback
 app = FastAPI()
 
 # CORS middleware para permitir peticiones desde tu frontend (ajusta en producción)
-origins = ["*"]
+origins = ["https://glaucomate.netlify.app"]  # ¡Aquí está la corrección!
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
