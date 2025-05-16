@@ -102,4 +102,4 @@ async def analyze_image(file: UploadFile = File(...)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000))) # Add this for local testing
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 4000))) # Add this for local testing
