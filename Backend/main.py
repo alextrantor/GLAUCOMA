@@ -14,7 +14,7 @@ import traceback
 app = FastAPI()
 
 # CORS middleware para permitir peticiones desde tu frontend (ajusta en producción)
-origins = ["https://glaucomate.netlify.app"]  # ¡Aquí está la corrección!
+origins = ["https://glaucomate.netlify.app"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -99,3 +99,7 @@ async def analyze_image(file: UploadFile = File(...)):
         results["glaucoma_suspected"] = cdr_prediction > cdr_threshold
 
     return results
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000))) # Add this for local testing
