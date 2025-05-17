@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 gunicorn
-tensorflow
+tensorflow-cpu
 pillow
 python-multipart
 fastapi-cors
