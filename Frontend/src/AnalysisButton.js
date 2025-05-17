@@ -16,15 +16,15 @@ function AnalysisButton({ imageFile, onResults }) {
         const ctx = canvas.getContext('2d');
         const targetSize = 224;
 
-        // Resize the image to 224x224 (you might need to handle aspect ratio more carefully)
+        // Redimensionar la imagen a 224x224
         canvas.width = targetSize;
         canvas.height = targetSize;
         ctx.drawImage(img, 0, 0, targetSize, targetSize);
 
-        // Get the image data as a Blob
+        // Convertir la imagen en Blob y enviarla
         canvas.toBlob(async (blob) => {
           const formData = new FormData();
-          formData.append('image', blob, 'processed_image.png'); // Send as PNG for consistency
+          formData.append('file', blob, 'processed_image.png'); // ✅ CAMPO CORRECTO
 
           try {
             const response = await fetch('https://glaucoma-ntk9.onrender.com/analyze/', {
@@ -36,11 +36,11 @@ function AnalysisButton({ imageFile, onResults }) {
               const data = await response.json();
               onResults(data);
             } else {
-              alert('Error al comunicarse con el backend.');
+              alert('❌ Error al comunicarse con el backend.');
             }
           } catch (error) {
             console.error('Error de red:', error);
-            alert('Error de red al comunicarse con el backend.');
+            alert('❌ Error de red al comunicarse con el backend.');
           }
         }, 'image/png');
       };
@@ -51,7 +51,13 @@ function AnalysisButton({ imageFile, onResults }) {
   };
 
   return (
-    <button onClick={handleAnalyzeClick}>Analizar</button>
+    <button
+      onClick={handleAnalyzeClick}
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+      disabled={!imageFile}
+    >
+      Analizar imagen
+    </button>
   );
 }
 
