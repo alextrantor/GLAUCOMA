@@ -99,7 +99,3 @@ async def analyze_image(file: UploadFile = File(...)):
         results["glaucoma_suspected"] = cdr_prediction > cdr_threshold
 
     return results
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 4000))) # Add this for local testing
