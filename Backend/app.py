@@ -86,23 +86,20 @@ async def preprocess_image(file: UploadFile):
 
 # Endpoint de análisis
 @app.post("/analyze/")
-async def analyze_image(file: UploadFile = File(...)):
+async def analyze_image(image_data: bytes = File(...)): # ✅ Recibe bytes directamente
     print("Recibida solicitud en /analyze/")
     if not nerve_detection_model or not cdr_regression_model:
         print("Error crítico: Intento de análisis pero los modelos no están cargados.")
         raise HTTPException(status_code=503, detail="Modelos no disponibles en el servidor. Por favor, revise los logs del servidor.")
 
     try:
-        print("Preprocesando imagen...")
-        image_array = await preprocess_image(file)
+        print("Reconstruyendo imagen desde bytes...")
+        image_array = np.frombuffer(image_data, dtype=np.float32).reshape((1, IMG_SIZE[0], IMG_SIZE[1], 3))
         print(f"Forma del array de imagen para predicción: {image_array.shape}") # Muy útil para depurar
-    except HTTPException as e:
-        # Propagar la excepción HTTP generada por preprocess_image
-        raise e
     except Exception as e:
-        print(f"Error inesperado llamando a preprocess_image: {e}")
+        print(f"Error al reconstruir la imagen desde bytes: {e}")
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Error inesperado durante el preprocesamiento de la imagen: {e}")
+        raise HTTPException(status_code=400, detail=f"Error al reconstruir la imagen desde los datos recibidos: {e}")
 
     results = {
         "is_nerve": False, # Default a False
@@ -138,3 +135,7 @@ async def analyze_image(file: UploadFile = File(...)):
 
     print(f"Resultados finales del análisis: {results}")
     return results
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
