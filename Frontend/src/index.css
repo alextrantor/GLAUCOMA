@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Puedes agregar estilos personalizados adicionales aquí si quieres */
+
+body {
+  @apply bg-blue-50 text-gray-800;
+  font-family: 'Inter', sans-serif; /* Si usas Inter, puedes importarla en index.html */
+}
