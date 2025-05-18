@@ -6,3 +6,4 @@ pillow
 python-multipart
 fastapi-cors
 huggingface-hub
+numpy
