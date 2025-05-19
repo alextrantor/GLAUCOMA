@@ -18,7 +18,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 app = FastAPI()
 
 # CORS para permitir peticiones desde tu frontend
-origins = ["https://glaucomate.netlify.app"]
+origins = ["https://glaucomate.netlify.app"] # Asegúrate que esta es la URL correcta de tu frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -92,14 +92,16 @@ async def preprocess_image(file: UploadFile):
 @app.post("/analyze/")
 async def analyze_image(file: UploadFile = File(...)):
     if not nerve_detection_model or not cdr_regression_model:
-        raise HTTPException(status_code=503, detail="Modelos no cargados")
+        raise HTTPException(status_code=503, detail="Modelos no cargados. Intenta de nuevo en unos momentos.")
 
     try:
         image_array = await preprocess_image(file)
         print("📸 Imagen preprocesada correctamente")
 
+        # Predicción de detección de nervio
         nerve_probability = nerve_detection_model.predict(image_array)[0][0]
-        is_nerve = nerve_probability < 0.5  # Ajusta este umbral según tu modelo
+        # Convertir numpy.bool_ a bool nativo de Python
+        is_nerve = bool(nerve_probability < 0.5)  # Ajusta este umbral según tu modelo
 
         results = {
             "is_nerve": is_nerve,
@@ -108,25 +110,42 @@ async def analyze_image(file: UploadFile = File(...)):
         }
 
         if is_nerve:
-            cdr_prediction = cdr_regression_model.predict(image_array)[0][0]
-            results["cdr_prediction"] = float(cdr_prediction)
-            results["glaucoma_suspected"] = cdr_prediction > 0.65  # Umbral de sospecha
+            # Predicción de regresión CDR solo si se detecta el nervio
+            cdr_prediction_numpy = cdr_regression_model.predict(image_array)[0][0]
+            # Convertir numpy.float32 (o similar) a float nativo de Python
+            results["cdr_prediction"] = float(cdr_prediction_numpy)
+            # Convertir numpy.bool_ a bool nativo de Python
+            results["glaucoma_suspected"] = bool(cdr_prediction_numpy > 0.65)  # Umbral de sospecha
 
-        print(f"✅ Análisis completado: {results}")
+        print(f"✅ Análisis completado: {results}") # Ahora debería mostrar True/False en lugar de np.True_
         return results
 
+    except HTTPException: # Re-lanzar HTTPExceptions para que FastAPI las maneje
+        raise
     except Exception as e:
         print(f"❌ Error en la predicción: {e}")
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail="Error en la predicción con los modelos")
+        # Devolver un error más específico si es posible, o uno genérico
+        raise HTTPException(status_code=500, detail=f"Error en la predicción con los modelos: {str(e)}")
 
 # Manejador global de excepciones (incluye cabecera CORS)
+# Este manejador es útil, pero el error específico estaba ocurriendo antes de llegar aquí,
+# durante la serialización de la respuesta del endpoint /analyze/.
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    print(f"🔥 Excepción no manejada: {exc}")
+    print(f"🔥 Excepción no manejada globalmente: {exc}") # Cambiado el emoji para diferenciar
     traceback.print_exc()
+    # Evita enviar detalles internos de la excepción al cliente en producción por seguridad
+    # a menos que sea una HTTPException ya controlada.
+    if isinstance(exc, HTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+            headers={"Access-Control-Allow-Origin": origins[0] if origins else "*"} # Usar el primer origen o wildcard
+        )
+    
     return JSONResponse(
         status_code=500,
         content={"detail": "Error interno en el servidor. Inténtalo más tarde."},
-        headers={"Access-Control-Allow-Origin": "https://glaucomate.netlify.app"}
+        headers={"Access-Control-Allow-Origin": origins[0] if origins else "*"}
     )
