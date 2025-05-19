@@ -14,6 +14,9 @@ export const translations = {
     waitingResults: 'Los resultados del análisis se mostrarán aquí.',
     loading: 'Analizando...',
     loadImage: 'Cargar Imagen',
+    checkingBackend: 'Conectando...',
+    startingServer: 'El servidor se está activando. Espera unos segundos e inténtalo de nuevo.',
+    error: 'Ocurrió un error al analizar la imagen. Intenta de nuevo.',
   },
   en: {
     title: 'Glaucoma Screening Tool',
@@ -30,5 +33,8 @@ export const translations = {
     waitingResults: 'Analysis results will be displayed here.',
     loading: 'Analyzing...',
     loadImage: 'Load Image',
+    checkingBackend: 'Connecting...',
+    startingServer: 'The server is waking up. Please wait a few seconds and try again.',
+    error: 'An error occurred while processing the image. Please try again.',
   },
 };

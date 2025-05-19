@@ -3,16 +3,39 @@ import { Loader2, Brain } from 'lucide-react';
 
 function AnalysisButton({ imageFile, onResults, t }) {
   const [loading, setLoading] = useState(false);
+  const [checkingBackend, setCheckingBackend] = useState(false);
+
+  const BACKEND_URL = 'https://glaucoma-ntk9.onrender.com';
+
+  const checkBackendStatus = async () => {
+    setCheckingBackend(true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/`, { method: 'GET' });
+      return res.ok;
+    } catch (e) {
+      return false;
+    } finally {
+      setCheckingBackend(false);
+    }
+  };
 
   const handleAnalysis = async () => {
     if (!imageFile) return;
 
     setLoading(true);
+
+    const backendReady = await checkBackendStatus();
+    if (!backendReady) {
+      alert(t('startingServer') || 'El servidor está despertando, por favor espera unos segundos e intenta de nuevo.');
+      setLoading(false);
+      return;
+    }
+
     const formData = new FormData();
-    formData.append('image', imageFile); // <- CORREGIDO AQUÍ
+    formData.append('file', imageFile);
 
     try {
-      const response = await fetch('https://glaucoma-ntk9.onrender.com/analyze', {
+      const response = await fetch(`${BACKEND_URL}/analyze`, {
         method: 'POST',
         body: formData,
       });
@@ -35,17 +58,17 @@ function AnalysisButton({ imageFile, onResults, t }) {
     <div className="text-center mt-4">
       <button
         onClick={handleAnalysis}
-        disabled={loading}
+        disabled={loading || checkingBackend}
         className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold shadow transition ${
-          loading
+          loading || checkingBackend
             ? 'bg-gray-400 cursor-not-allowed'
             : 'bg-blue-600 hover:bg-blue-700 text-white'
         }`}
       >
-        {loading ? (
+        {(loading || checkingBackend) ? (
           <>
             <Loader2 className="animate-spin w-4 h-4" />
-            {t('analyzing')}
+            {checkingBackend ? t('checkingBackend') || 'Conectando...' : t('analyzing')}
           </>
         ) : (
           <>
