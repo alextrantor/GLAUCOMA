@@ -23,8 +23,8 @@ app.add_middleware(
 IMG_SIZE = (224, 224)
 
 # Rutas de modelos en Hugging Face
-NERVO_MODEL_URL = "https://huggingface.co/Glaucomate/Modelo-glaucoma/resolve/main/nervio_optico_modelo_mobilenet.h5"
-GLAUCOMA_MODEL_URL = "https://huggingface.co/Glaucomate/Modelo-glaucoma/resolve/main/modelo_clasificacion_glaucoma_mejorado.h5"
+NERVO_MODEL_URL = "https://huggingface.co/Glaucomate/Modelo-glaucoma/resolve/main/modelo_deteccion_nervio_universal.h5"
+GLAUCOMA_MODEL_URL = "https://huggingface.co/Glaucomate/Modelo-glaucoma/resolve/main/modelo_regresion_cdr.h5"
 
 # Inicializar modelos como None
 nerve_detection_model = None
