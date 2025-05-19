@@ -12,7 +12,7 @@ function AnalysisButton({ imageFile, onResults, t }) {
     formData.append('file', imageFile);
 
     try {
-      const response = await fetch('https://glaucoma-ntk9.onrender.com/predict', {
+      const response = await fetch('https://glaucoma-ntk9.onrender.com/analyze', {
         method: 'POST',
         body: formData,
       });
