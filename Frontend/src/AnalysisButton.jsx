@@ -9,7 +9,7 @@ function AnalysisButton({ imageFile, onResults, t }) {
 
     setLoading(true);
     const formData = new FormData();
-    formData.append('file', imageFile);
+    formData.append('image', imageFile); // <- CORREGIDO AQUÍ
 
     try {
       const response = await fetch('https://glaucoma-ntk9.onrender.com/analyze', {
