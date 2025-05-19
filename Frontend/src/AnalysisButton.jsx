@@ -12,7 +12,8 @@ function AnalysisButton({ imageFile, onResults, t }) {
     try {
       const res = await fetch(`${BACKEND_URL}/`, { method: 'GET' });
       return res.ok;
-    } catch (e) {
+    } catch (error) {
+      console.error('Error verificando el backend:', error);
       return false;
     } finally {
       setCheckingBackend(false);
@@ -40,13 +41,15 @@ function AnalysisButton({ imageFile, onResults, t }) {
         body: formData,
       });
 
-      if (!response.ok) throw new Error('Error en la respuesta del servidor');
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
 
       const result = await response.json();
       onResults(result);
     } catch (error) {
-      console.error('Error al procesar la imagen:', error);
-      alert(t('error'));
+      console.error('Error al analizar la imagen:', error);
+      alert(t('error') || 'Ocurrió un error durante el análisis. Intenta nuevamente.');
     } finally {
       setLoading(false);
     }
@@ -68,7 +71,7 @@ function AnalysisButton({ imageFile, onResults, t }) {
         {(loading || checkingBackend) ? (
           <>
             <Loader2 className="animate-spin w-4 h-4" />
-            {checkingBackend ? t('checkingBackend') || 'Conectando...' : t('analyzing')}
+            {checkingBackend ? (t('checkingBackend') || 'Conectando...') : t('analyzing')}
           </>
         ) : (
           <>
