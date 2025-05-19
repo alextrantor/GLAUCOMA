@@ -20,7 +20,7 @@ app = FastAPI()
 origins = ["https://glaucomate.netlify.app"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permite cualquier origen (peligroso para producción, pero para probar)
+    allow_origins=["https://glaucomate.netlify.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
