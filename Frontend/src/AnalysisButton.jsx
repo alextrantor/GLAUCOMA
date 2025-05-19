@@ -35,7 +35,7 @@ function AnalysisButton({ imageFile, onResults, t }) {
     formData.append('file', imageFile);
 
     try {
-      const response = await fetch(`${BACKEND_URL}/analyze`, {
+      const response = await fetch(`${BACKEND_URL}/analyze/`, {
         method: 'POST',
         body: formData,
       });
