@@ -106,7 +106,7 @@ async def analyze_image(file: UploadFile = File(...)):
         print(f"🔍 Probabilidad de nervio óptico: {nerve_probability:.4f}")
 
         # Nuevo umbral alto para asegurar que sea un nervio óptico real
-        is_nerve = bool(nerve_probability > 0.9)
+        is_nerve = bool(nerve_probability > 0.7)
 
         results = {
             "is_nerve": is_nerve,
