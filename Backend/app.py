@@ -18,7 +18,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 app = FastAPI()
 
 # CORS para permitir peticiones desde tu frontend
-origins = ["https://glaucomate.netlify.app"] # Asegúrate que esta es la URL correcta de tu frontend
+origins = ["https://glaucomate.netlify.app"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -42,8 +42,6 @@ async def startup_event():
     global nerve_detection_model, cdr_regression_model
     try:
         print("🔄 Iniciando carga de modelos desde Hugging Face...")
-
-        # Modelo de detección de nervio óptico
         nerve_path = hf_hub_download(
             repo_id=HUGGINGFACE_REPO_ID,
             filename=NERVIO_MODEL_FILENAME,
@@ -52,7 +50,6 @@ async def startup_event():
         nerve_detection_model = load_model(nerve_path)
         print(f"✅ Modelo de detección de nervio cargado desde: {nerve_path}")
 
-        # Modelo de regresión de CDR
         cdr_path = hf_hub_download(
             repo_id=HUGGINGFACE_REPO_ID,
             filename=CDR_MODEL_FILENAME,
@@ -63,12 +60,11 @@ async def startup_event():
             custom_objects={'mse': tf.keras.losses.MeanSquaredError()}
         )
         print(f"✅ Modelo de regresión CDR cargado desde: {cdr_path}")
-
         print("✅ Todos los modelos cargados correctamente.")
     except Exception as e:
         print("❌ Error al cargar los modelos:")
         traceback.print_exc()
-        sys.exit(3)  # Detiene la app si los modelos no se cargan
+        sys.exit(3)
 
 @app.get("/")
 def root():
@@ -80,14 +76,22 @@ def root():
 async def preprocess_image(file: UploadFile):
     try:
         contents = await file.read()
-        img = Image.open(BytesIO(contents)).convert('RGB').resize(IMG_SIZE)
-        img_array = np.array(img) / 255.0
-        img_array = np.expand_dims(img_array, axis=0)  # (1, 224, 224, 3)
+        img = Image.open(BytesIO(contents)).convert('RGB')
+        
+        try:
+            img_resized = img.resize(IMG_SIZE, Image.Resampling.NEAREST)
+        except AttributeError:
+            img_resized = img.resize(IMG_SIZE, Image.NEAREST)
+            
+        img_array = np.array(img_resized)
+        img_array = img_array / 255.0
+        img_array = img_array.astype(np.float32)
+        img_array = np.expand_dims(img_array, axis=0)
         return img_array
     except Exception as e:
         print(f"❌ Error en preprocess_image: {e}")
         traceback.print_exc()
-        raise HTTPException(status_code=400, detail="Error al procesar la imagen")
+        raise HTTPException(status_code=400, detail=f"Error al procesar la imagen: {str(e)}")
 
 @app.post("/analyze/")
 async def analyze_image(file: UploadFile = File(...)):
@@ -96,12 +100,13 @@ async def analyze_image(file: UploadFile = File(...)):
 
     try:
         image_array = await preprocess_image(file)
-        print("📸 Imagen preprocesada correctamente")
+        print(f"📸 Imagen preprocesada correctamente. Shape: {image_array.shape}, dtype: {image_array.dtype}")
 
-        # Predicción de detección de nervio
         nerve_probability = nerve_detection_model.predict(image_array)[0][0]
-        # Convertir numpy.bool_ a bool nativo de Python
-        is_nerve = bool(nerve_probability < 0.5)  # Ajusta este umbral según tu modelo
+        print(f"🔍 Probabilidad de nervio óptico: {nerve_probability:.4f}")
+
+        # Nuevo umbral alto para asegurar que sea un nervio óptico real
+        is_nerve = bool(nerve_probability > 0.9)
 
         results = {
             "is_nerve": is_nerve,
@@ -109,41 +114,38 @@ async def analyze_image(file: UploadFile = File(...)):
             "glaucoma_suspected": None
         }
 
-        if is_nerve:
-            # Predicción de regresión CDR solo si se detecta el nervio
-            cdr_prediction_numpy = cdr_regression_model.predict(image_array)[0][0]
-            # Convertir numpy.float32 (o similar) a float nativo de Python
-            results["cdr_prediction"] = float(cdr_prediction_numpy)
-            # Convertir numpy.bool_ a bool nativo de Python
-            results["glaucoma_suspected"] = bool(cdr_prediction_numpy > 0.65)  # Umbral de sospecha
+        if not is_nerve:
+            print("❌ Imagen rechazada: no se detectó un nervio óptico con suficiente confianza.")
+            raise HTTPException(
+                status_code=400,
+                detail="La imagen no parece contener un nervio óptico. Intenta con otra imagen más clara y centrada."
+            )
 
-        print(f"✅ Análisis completado: {results}") # Ahora debería mostrar True/False en lugar de np.True_
+        cdr_prediction_numpy = cdr_regression_model.predict(image_array)[0][0]
+        print(f"🔎 Predicción CDR: {cdr_prediction_numpy:.4f}")
+        results["cdr_prediction"] = float(cdr_prediction_numpy)
+        results["glaucoma_suspected"] = bool(cdr_prediction_numpy > 0.5)
+
+        print(f"✅ Análisis completado: {results}")
         return results
 
-    except HTTPException: # Re-lanzar HTTPExceptions para que FastAPI las maneje
+    except HTTPException:
         raise
     except Exception as e:
         print(f"❌ Error en la predicción: {e}")
         traceback.print_exc()
-        # Devolver un error más específico si es posible, o uno genérico
         raise HTTPException(status_code=500, detail=f"Error en la predicción con los modelos: {str(e)}")
 
-# Manejador global de excepciones (incluye cabecera CORS)
-# Este manejador es útil, pero el error específico estaba ocurriendo antes de llegar aquí,
-# durante la serialización de la respuesta del endpoint /analyze/.
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    print(f"🔥 Excepción no manejada globalmente: {exc}") # Cambiado el emoji para diferenciar
+    print(f"🔥 Excepción no manejada globalmente: {exc}")
     traceback.print_exc()
-    # Evita enviar detalles internos de la excepción al cliente en producción por seguridad
-    # a menos que sea una HTTPException ya controlada.
     if isinstance(exc, HTTPException):
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail},
-            headers={"Access-Control-Allow-Origin": origins[0] if origins else "*"} # Usar el primer origen o wildcard
+            headers={"Access-Control-Allow-Origin": origins[0] if origins else "*"}
         )
-    
     return JSONResponse(
         status_code=500,
         content={"detail": "Error interno en el servidor. Inténtalo más tarde."},
