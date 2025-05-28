@@ -1,70 +1,91 @@
-// src/AnalysisButton.jsx
 import React, { useState } from 'react';
-import axios from 'axios';
-
-const BACKEND_URL = 'https://glaucoma-ntk9.onrender.com';
+import { Loader2, Brain } from 'lucide-react';
 
 function AnalysisButton({ imageFile, onResults, t }) {
   const [loading, setLoading] = useState(false);
+  const [checkingBackend, setCheckingBackend] = useState(false);
 
-  const analyzeImage = async () => {
-    if (!imageFile) return;
+  const BACKEND_URL = 'https://glaucoma-ntk9.onrender.com';
 
-    setLoading(true);
-    onResults(null);
-
-    const formData = new FormData();
-    formData.append('image', imageFile);
-
+  const checkBackendStatus = async () => {
+    setCheckingBackend(true);
     try {
-      // Paso 1: Validar si es nervio óptico
-      const validateResponse = await axios.post(`${BACKEND_URL}/validate`, formData);
-      const isOpticNerve = validateResponse.data.is_optic_nerve;
+      const res = await fetch(`${BACKEND_URL}/`, { method: 'GET' });
+      return res.ok;
+    } catch (error) {
+      console.error('Error verificando el backend:', error);
+      console.error('🌐 Error al verificar el backend:', error);
+      return false;
+    } finally {
+      setCheckingBackend(false);
+@@ -27,7 +27,10 @@
 
-      if (!isOpticNerve) {
-        onResults({
-          opticNerveDetected: false,
-          message: t('noOpticNerveMessage'),
-        });
-        setLoading(false);
-        return;
+    const backendReady = await checkBackendStatus();
+    if (!backendReady) {
+      alert(t('startingServer') || 'El servidor está despertando, por favor espera unos segundos e intenta de nuevo.');
+      alert(
+        t?.('startingServer') ||
+          '⏳ El servidor se está iniciando. Espera unos segundos e intenta de nuevo.'
+      );
+      setLoading(false);
+      return;
+    }
+@@ -42,14 +45,20 @@
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+        const errorData = await response.json();
+        console.error('❌ Error del servidor:', errorData);
+        throw new Error(errorData.detail || 'Error inesperado del servidor.');
       }
 
-      // Paso 2: Si es nervio óptico, estimar CDR
-      const analyzeResponse = await axios.post(`${BACKEND_URL}/analyze`, formData);
-      const predictedCDR = analyzeResponse.data.predicted_cdr;
-      const glaucomaSuspected = predictedCDR >= 0.5;
-
-      onResults({
-        opticNerveDetected: true,
-        predictedCDR,
-        glaucomaSuspected,
-        message: glaucomaSuspected
-          ? t('glaucomaDetectedMessage')
-          : t('glaucomaNotDetectedMessage'),
-      });
+      const result = await response.json();
+      console.log('✅ Resultados recibidos:', result);
+      onResults(result);
     } catch (error) {
-      console.error('Error analyzing image:', error);
-      onResults({
-        error: true,
-        message: t('error'),
-      });
+      console.error('Error al analizar la imagen:', error);
+      alert(t('error') || 'Ocurrió un error durante el análisis. Intenta nuevamente.');
+      console.error('❌ Error durante el análisis:', error);
+      alert(
+        t?.('error') ||
+          '⚠️ Ocurrió un error durante el análisis. Intenta nuevamente más tarde.'
+      );
     } finally {
       setLoading(false);
     }
-  };
-
-  return (
-    <div className="text-center my-4">
+@@ -62,26 +71,29 @@
       <button
-        onClick={analyzeImage}
-        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded disabled:opacity-50"
-        disabled={!imageFile || loading}
+        onClick={handleAnalysis}
+        disabled={loading || checkingBackend}
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold shadow transition ${
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold shadow transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+          loading || checkingBackend
+            ? 'bg-gray-400 cursor-not-allowed'
+            ? 'bg-gray-400 text-white cursor-not-allowed'
+            : 'bg-blue-600 hover:bg-blue-700 text-white'
+        }`}
+        aria-busy={loading || checkingBackend}
       >
-        {loading ? t('loading') : t('analyze')}
+        {(loading || checkingBackend) ? (
+        {loading || checkingBackend ? (
+          <>
+            <Loader2 className="animate-spin w-4 h-4" />
+            {checkingBackend ? (t('checkingBackend') || 'Conectando...') : t('analyzing')}
+            {checkingBackend
+              ? t?.('checkingBackend') || 'Conectando...'
+              : t?.('analyzing') || 'Analizando...'}
+          </>
+        ) : (
+          <>
+            <Brain className="w-4 h-4" />
+            {t('analyze')}
+            {t?.('analyze') || 'Analizar'}
+          </>
+        )}
       </button>
     </div>
   );
 }
 
-export default AnalysisButton;
+export default AnalysisButton
