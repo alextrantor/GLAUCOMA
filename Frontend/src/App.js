@@ -6,7 +6,7 @@ function AnalysisButton({ imageFile, onResults, t }) {
 
   const handleAnalyze = async () => {
     if (!imageFile) {
-      setError(t('noImageSelected'));
+      setError(t('noImage'));
       return;
     }
 
@@ -26,7 +26,7 @@ function AnalysisButton({ imageFile, onResults, t }) {
       const data = await response.json();
 
       if (!response.ok) {
-        const errorMsg = data.detail || t('analysisError');
+        const errorMsg = data.detail || t('error');
         setError(errorMsg);
         return;
       }
@@ -34,7 +34,7 @@ function AnalysisButton({ imageFile, onResults, t }) {
       onResults(data);
     } catch (err) {
       console.error(err);
-      setError(t('serverError') || 'No se pudo conectar al servidor.');
+      setError(t('error') || 'No se pudo conectar al servidor.');
     } finally {
       setLoading(false);
     }
@@ -47,7 +47,7 @@ function AnalysisButton({ imageFile, onResults, t }) {
         disabled={loading}
         className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
       >
-        {loading ? t('loading') : t('analyzeButton')}
+        {loading ? t('loading') : t('analyze')}
       </button>
       {error && <p className="text-red-600 mt-2">{error}</p>}
     </div>
