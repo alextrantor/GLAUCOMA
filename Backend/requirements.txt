@@ -1,8 +1,14 @@
+# Versiones base críticas
+setuptools==65.5.1
+wheel==0.38.4
+pip==23.0.1
+
+# Dependencias principales con versiones compatibles
 fastapi==0.95.2
 uvicorn==0.22.0
-numpy==1.24.3
+numpy==1.24.3 --no-binary numpy  # Instalación sin wheels
 pillow==10.0.0
-tensorflow-cpu==2.12.0  # o tensorflow si necesitas GPU
+tensorflow-cpu==2.12.0
 huggingface-hub==0.16.4
 python-multipart==0.0.6
-types-pillow==9.4.0.19  # Para type hints
+protobuf==3.20.3
