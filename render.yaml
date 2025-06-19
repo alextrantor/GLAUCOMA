@@ -1,12 +1,11 @@
 services:
   - type: web
-    name: glaucoma-backend
+    name: glaucoma-api
     env: python
-    region: oregon
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn -w 1 -k uvicorn.workers.UvicornWorker app:app --bind 0.0.0.0:8000
-    envVars:
-      - key: PORT
-        value: 8000
-    workingDirectory: Backend
-    autoDeploy: true
+    python:
+      version: "3.9.13"
+    buildCommand: |
+      cd Backend && 
+      python -m pip install --upgrade pip==23.0.1 setuptools==65.5.1 wheel==0.38.4 &&
+      pip install --no-cache-dir -r requirements.txt
+    startCommand: cd Backend && uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
